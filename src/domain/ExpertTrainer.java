@@ -1,0 +1,97 @@
+package domain;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+
+import domain.Pokemon.Tipo;
+
+public class ExpertTrainer extends EntrenadorMachine{
+
+	public ExpertTrainer(String name, String tipo ) {
+		super(name, tipo);
+	}
+	
+	@Override
+	public void escogerPokemonesTipo(Map<Tipo, List<Pokemon>> pokemonesMachine) {
+	    ArrayList<Pokemon> todos = new ArrayList<>();
+	    for (List<Pokemon> lista : pokemonesMachine.values()) {
+	        todos.addAll(lista);
+	    }
+
+	    // Criterio de puntaje compuesto (puedes ajustar pesos)
+	    todos.sort((a, b) -> {
+	        int scoreA = (a.getAtaque() + a.getAtaqueEspecial()) * 2 + a.getVelocidad()
+	                   + a.getDefensa() + a.getDefensaEspecial() + a.getSaludMaxima();
+	        int scoreB = (b.getAtaque() + b.getAtaqueEspecial()) * 2 + b.getVelocidad()
+	                   + b.getDefensa() + b.getDefensaEspecial() + b.getSaludMaxima();
+	        return Integer.compare(scoreB, scoreA);
+	    });
+
+	    ArrayList<Pokemon> pokemonesElegidos = new ArrayList<>();
+	    for (int i = 0; i < 6 && i < todos.size(); i++) {
+	        pokemonesElegidos.add(todos.get(i));
+	    }
+
+	    this.pokemones = pokemonesElegidos;
+	}
+
+	
+	@Override
+	public void escogerItemsTipo() {
+	    ArrayList<Item> potions = new ArrayList<>();
+	    potions.add(new Potion("Potion0", 20));
+	    potions.add(new SuperPotion("SuperPotion0", 50));
+	    potions.add(new HyperPotion("HyperPotion0", 200));
+	    potions.add(new Revive("Revive0", 200));
+
+	    int pocionesElegidas = 0;
+	    boolean reviveElegido = false;
+
+	    // Ordenar por mayor recuperación para elegir las 2 mejores pociones
+	    potions.sort((a, b) -> Integer.compare(b.getRecuperacion(), a.getRecuperacion()));
+
+	    for (Item it : potions) {
+	        if (it.esRevive()) continue;
+	        if (pocionesElegidas < 2) {
+	            this.items.add(it);
+	            pocionesElegidas++;
+	        }
+	    }
+
+	    for (Item it : potions) {
+	        if (it.esRevive() && !reviveElegido) {
+	            this.items.add(it);
+	            reviveElegido = true;
+	            break;
+	        }
+	    }
+	}
+	
+	@Override
+	public void agregarMovimientos(Pokemon pokemon, Map<Tipo, List<Movimiento>> movimientosPorTipo, List<Movimiento> movimientosIsPlayer) {
+	    ArrayList<Movimiento> todosMovimientos = new ArrayList<>();
+
+	    // Agregar todos los movimientos de todos los tipos
+	    for (List<Movimiento> lista : movimientosPorTipo.values()) {
+	        todosMovimientos.addAll(lista);
+	    }
+
+	    // Ordenar los movimientos por un criterio de puntaje
+	    todosMovimientos.sort((m1, m2) -> {
+	        int score1 = m1.getPotencia() * m1.getPresicion(); // Ejemplo: peso por poder y precisión
+	        int score2 = m2.getPotencia() * m2.getPresicion();
+	        return Integer.compare(score2, score1); // Mayor puntaje primero
+	    });
+
+	    // Seleccionar los 4 mejores movimientos
+	    ArrayList<Movimiento> mejoresMovimientos = new ArrayList<>();
+	    for (int i = 0; i < 4 && i < todosMovimientos.size(); i++) {
+	        mejoresMovimientos.add(todosMovimientos.get(i));
+	    }
+
+	    // Asignar los movimientos al Pokémon
+	    pokemon.setMovimientos(mejoresMovimientos);
+	}
+
+}
