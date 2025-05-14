@@ -45,8 +45,7 @@ public class BattlePvMPanel extends JPanel {
         this.pokemonGUI = pokemonGUI;
         this.jugador = jugador2;
         this.maquina = maquina;
-        
-        // Inicializar los Pokémon activos
+
         if (jugador2 != null && !jugador2.getPokemones().isEmpty()) {
             this.pokemonJugador = jugador2.getPokemones().get(0);
         } else {
@@ -220,21 +219,35 @@ public class BattlePvMPanel extends JPanel {
         JPanel movesPanel = new JPanel(new GridLayout(3, 2, 5, 5));
         movesPanel.setOpaque(false);
 
-        // Obtener movimientos del pokémon actual del mapa de movimientos
+        // Obtener movimientos del pokémon actual
         Map<Pokemon, List<Movimiento>> pokemonMoves = pokemonGUI.getPokemonMovements();
         List<Movimiento> movimientos = new ArrayList<>();
-        if (pokemonMoves != null && pokemonJugador != null) {
+
+        // Verificar si hay movimientos asignados para el Pokémon actual
+        if (pokemonJugador != null) {
+            System.out.println("Cargando movimientos para: " + pokemonJugador.getNombre());
             movimientos = pokemonMoves.getOrDefault(pokemonJugador, new ArrayList<>());
+            System.out.println("Movimientos encontrados: " + movimientos.size());
+            
+            // Imprimir los movimientos para depuración
+            for (Movimiento mov : movimientos) {
+                System.out.println("- " + mov.getName());
+            }
         }
 
         // Crear los botones de movimiento
         for (int i = 0; i < 4; i++) {
             if (i < movimientos.size()) {
-                moveButtons[i].setText(movimientos.get(i).getName());
+                Movimiento mov = movimientos.get(i);
+                moveButtons[i].setText(mov.getName());
                 moveButtons[i].setEnabled(true);
+                
+                // Asignar el color del botón según el tipo del movimiento
+                moveButtons[i].setBackground(getColorForMove(mov));
             } else {
                 moveButtons[i].setText("-");
                 moveButtons[i].setEnabled(false);
+                moveButtons[i].setBackground(new Color(51, 51, 51));
             }
             movesPanel.add(moveButtons[i]);
         }
@@ -262,6 +275,42 @@ public class BattlePvMPanel extends JPanel {
 
         add(mainPanel);
         mainPanel.setPreferredSize(new Dimension(800, 600));
+    }
+    
+    private Color getColorForMove(Movimiento movimiento) {
+        // Obtener el tipo del movimiento
+        Pokemon.Tipo tipoMovimiento = null;
+        for (Pokemon.Tipo tipo : Pokemon.Tipo.values()) {
+            if (pokemonGUI.getPokemonAplication().getMovimientosPorTipo(tipo).contains(movimiento)) {
+                tipoMovimiento = tipo;
+                break;
+            }
+        }
+        
+        // Asignar color según el tipo
+        if (tipoMovimiento != null) {
+            switch (tipoMovimiento) {
+                case FUEGO: return new Color(255, 68, 0);
+                case AGUA: return new Color(0, 128, 255);
+                case PLANTA: return new Color(0, 204, 0);
+                case ELECTRICO: return new Color(255, 204, 0);
+                case HIELO: return new Color(102, 204, 255);
+                case LUCHA: return new Color(153, 51, 0);
+                case VENENO: return new Color(153, 0, 153);
+                case TIERRA: return new Color(153, 102, 51);
+                case VOLADOR: return new Color(153, 204, 255);
+                case PSIQUICO: return new Color(255, 102, 255);
+                case BICHO: return new Color(102, 153, 0);
+                case ROCA: return new Color(153, 153, 102);
+                case FANTASMA: return new Color(102, 51, 153);
+                case DRAGON: return new Color(102, 0, 204);
+                case SINIESTRO: return new Color(51, 51, 51);
+                case ACERO: return new Color(153, 153, 153);
+                case HADA: return new Color(255, 153, 255);
+                default: return new Color(51, 51, 51);
+            }
+        }
+        return new Color(51, 51, 51);
     }
 
     private BufferedImage loadPokemonImage(String pokemonName, boolean isPlayer) {
@@ -588,19 +637,28 @@ public class BattlePvMPanel extends JPanel {
         enemyPokemonImage = loadPokemonImage(pokemonMaquina.getNombre(), false);
         
         // Actualizar información en la interfaz
+        playerNameLabel.setText(pokemonJugador.getNombre());
+        enemyNameLabel.setText(pokemonMaquina.getNombre());
         updateHealthBars();
         
-        // Actualizar movimientos disponibles usando el mapa de movimientos del pokemonGUI
+        // Actualizar movimientos disponibles
         Map<Pokemon, List<Movimiento>> pokemonMoves = pokemonGUI.getPokemonMovements();
         List<Movimiento> movimientos = pokemonMoves.get(pokemonJugador);
         
+        System.out.println("Actualizando movimientos para: " + pokemonJugador.getNombre());
+        
         for (int i = 0; i < moveButtons.length; i++) {
             if (movimientos != null && i < movimientos.size()) {
-                moveButtons[i].setText(movimientos.get(i).getName());
+                Movimiento mov = movimientos.get(i);
+                moveButtons[i].setText(mov.getName());
                 moveButtons[i].setEnabled(true);
+                moveButtons[i].setBackground(getColorForMove(mov));
+                System.out.println("Botón " + i + ": " + mov.getName());
             } else {
                 moveButtons[i].setText("-");
                 moveButtons[i].setEnabled(false);
+                moveButtons[i].setBackground(new Color(51, 51, 51));
+                System.out.println("Botón " + i + ": deshabilitado");
             }
         }
         

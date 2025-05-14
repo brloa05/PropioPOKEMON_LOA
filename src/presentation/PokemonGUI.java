@@ -269,51 +269,61 @@ public class PokemonGUI extends JFrame {
     
  // Método para mostrar batalla PvM
     public void mostrarBattlePvMPanel() {
-        try {
-            // Crear la máquina según el tipo seleccionado
-            if (maquina == null) {
-                switch(tipoMaquinaSeleccionada) {
-                    case "ExpertTrainer":
-                        maquina = new ExpertTrainer("Machine", "Machine");
-                        break;
-                    case "AttackingTrainer":
-                        maquina = new AttackingTrainer("Machine", "Machine");
-                        break;
-                    case "DefensiveTrainer":
-                        maquina = new DefensiveTrainer("Machine", "Machine");
-                        break;
-                    case "ChangingTrainer":
-                        maquina = new ChangingTrainer("Machine", "Machine");
-                        break;
-                    default:
-                        maquina = new ExpertTrainer("Machine", "Machine");
-                }
+    try {
+        // Verifica si el jugador está inicializado
+        if (jugador == null) {
+            // Si no hay jugador, crea uno nuevo con los datos disponibles
+            jugador = new EntrenadorPlayer(currentPlayer, "Player");
+            
+            // Si hay pokémon seleccionados para el jugador actual, asígnalos
+            if (currentPlayer != null && playerPokemons.containsKey(currentPlayer)) {
+                jugador.setPokemones(playerPokemons.get(currentPlayer));
             }
-
-            // Verificar los Pokémon del jugador y la máquina
-            if (jugador.getPokemones() == null || jugador.getPokemones().isEmpty()) {
-                throw new IllegalStateException("El jugador debe tener al menos un Pokémon para iniciar la batalla");
-            }
-
-            if (maquina.getPokemones() == null || maquina.getPokemones().isEmpty()) {
-                // Si la máquina no tiene Pokémon, cargar Pokémon por defecto
-                cargarPokemonMaquina();
-            }
-
-            BattlePvMPanel battlePvMPanel = new BattlePvMPanel(this, jugador, maquina);
-            cardPanel.add(battlePvMPanel, "BATTLE");
-            cardLayout.show(cardPanel, "BATTLE");
-
-        } catch (IllegalStateException e) {
-            JOptionPane.showMessageDialog(
-                this,
-                "Error al iniciar la batalla: " + e.getMessage(),
-                "Error",
-                JOptionPane.ERROR_MESSAGE
-            );
-            volverAlMenuPrincipal();
         }
+
+        // Crear la máquina según el tipo seleccionado
+        if (maquina == null) {
+            switch(tipoMaquinaSeleccionada) {
+                case "ExpertTrainer":
+                    maquina = new ExpertTrainer("Machine", "Machine");
+                    break;
+                case "AttackingTrainer":
+                    maquina = new AttackingTrainer("Machine", "Machine");
+                    break;
+                case "DefensiveTrainer":
+                    maquina = new DefensiveTrainer("Machine", "Machine");
+                    break;
+                case "ChangingTrainer":
+                    maquina = new ChangingTrainer("Machine", "Machine");
+                    break;
+                default:
+                    maquina = new ExpertTrainer("Machine", "Machine");
+            }
+        }
+
+        // Verificar los Pokémon del jugador y la máquina
+        if (jugador.getPokemones() == null || jugador.getPokemones().isEmpty()) {
+            throw new IllegalStateException("El jugador debe tener al menos un Pokémon para iniciar la batalla");
+        }
+
+        if (maquina.getPokemones() == null || maquina.getPokemones().isEmpty()) {
+            cargarPokemonMaquina();
+        }
+
+        BattlePvMPanel battlePvMPanel = new BattlePvMPanel(this, jugador, maquina);
+        cardPanel.add(battlePvMPanel, "BATTLE");
+        cardLayout.show(cardPanel, "BATTLE");
+
+    } catch (IllegalStateException e) {
+        JOptionPane.showMessageDialog(
+            this,
+            "Error al iniciar la batalla: " + e.getMessage(),
+            "Error",
+            JOptionPane.ERROR_MESSAGE
+        );
+        volverAlMenuPrincipal();
     }
+}
 
     // Método para mostrar batalla PvP
     public void mostrarBattlePanel() {

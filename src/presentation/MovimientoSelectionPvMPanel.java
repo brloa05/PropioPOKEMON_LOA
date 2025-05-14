@@ -9,9 +9,12 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 public class MovimientoSelectionPvMPanel extends JPanel {
     private PokemonGUI pokemonGUI;
@@ -24,8 +27,7 @@ public class MovimientoSelectionPvMPanel extends JPanel {
     private DefaultListModel<Movimiento> selectedModel;
     private JButton btnAddMovement;
     private JButton btnRemoveMovement;
-    private JButton btnConfirm;
-    private JButton btnSiguiente;
+    private JButton btnConfirmarYSiguiente;
     private List<Pokemon> selectedPokemons = new ArrayList<>();
     private String tipoDeMaquinaSeleccionado = "Normal";
     
@@ -74,14 +76,25 @@ public class MovimientoSelectionPvMPanel extends JPanel {
 
 
         JPanel bottomPanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
-        btnConfirm = new JButton("Confirmar Movimientos");
-        btnSiguiente = new JButton("Siguiente");
-        bottomPanel.add(btnConfirm);
-        bottomPanel.add(btnSiguiente);
+        btnConfirmarYSiguiente = new JButton("Confirmar y Continuar");
+        btnConfirmarYSiguiente.setEnabled(false); // Inicialmente deshabilitado
+        bottomPanel.add(btnConfirmarYSiguiente);
         add(bottomPanel, BorderLayout.SOUTH);
+        
+        if (movimientosAsignados == null) {
+            movimientosAsignados = new HashMap<>();
+        }
 
-
+        // Cargar los movimientos iniciales
         loadPokemonMovements((Pokemon) cbPokemons.getSelectedItem());
+        
+        // Verificar el estado inicial
+        System.out.println("=== Inicialización del Panel ===");
+        System.out.println("Número de Pokémon: " + pokemones.size());
+        verificarMovimientosCompletos();
+        
+        loadPokemonMovements((Pokemon) cbPokemons.getSelectedItem());
+        verificarMovimientosCompletos(); // Verificar estado inicial
     }
 
     private void prepareActions() {
@@ -92,106 +105,194 @@ public class MovimientoSelectionPvMPanel extends JPanel {
 
         btnAddMovement.addActionListener(e -> {
             Movimiento selected = availableMovementsList.getSelectedValue();
+            Pokemon currentPokemon = (Pokemon) cbPokemons.getSelectedItem();
+            
             if (selected != null && selectedModel.size() < 4) {
+                System.out.println("Añadiendo movimiento: " + selected.getName() + 
+                                 " a " + currentPokemon.getNombre());
                 selectedModel.addElement(selected);
                 availableModel.removeElement(selected);
+                
+                // Guardar inmediatamente después de añadir
+                saveCurrentPokemonMovements(currentPokemon);
             }
         });
 
         btnRemoveMovement.addActionListener(e -> {
             Movimiento selected = selectedMovementsList.getSelectedValue();
+            Pokemon currentPokemon = (Pokemon) cbPokemons.getSelectedItem();
+            
             if (selected != null) {
+                System.out.println("Removiendo movimiento: " + selected.getName() + 
+                                 " de " + currentPokemon.getNombre());
                 availableModel.addElement(selected);
                 selectedModel.removeElement(selected);
+                
+                // Guardar inmediatamente después de remover
+                saveCurrentPokemonMovements(currentPokemon);
             }
         });
 
-        btnConfirm.addActionListener(e -> {
+        btnConfirmarYSiguiente.addActionListener(e -> {
             Pokemon current = (Pokemon) cbPokemons.getSelectedItem();
             saveCurrentPokemonMovements(current);
 
-            boolean allComplete = pokemones.stream()
-                .allMatch(p -> movimientosAsignados.getOrDefault(p, List.of()).size() == 4);
-
+            System.out.println("\n=== Verificación Final ===");
+            boolean allComplete = true;
+            StringBuilder errorMessage = new StringBuilder("Estado de los Pokémon:\n");
+            
+            for (Pokemon p : pokemones) {
+                List<Movimiento> moves = movimientosAsignados.get(p);
+                int moveCount = moves != null ? moves.size() : 0;
+                boolean hasEnoughMoves = moveCount >= 1;
+                
+                errorMessage.append(p.getNombre())
+                           .append(": ")
+                           .append(moveCount)
+                           .append(" movimientos\n");
+                
+                allComplete &= hasEnoughMoves;
+            }
+            
+            System.out.println(errorMessage.toString());
+            
             if (allComplete) {
                 pokemonGUI.setPokemonMovements(new HashMap<>(movimientosAsignados));
-                pokemonGUI.displayCurrentPlayerData(); 
+                pokemonGUI.displayCurrentPlayerData();
+                setModoJuego(ModoJuego.PVM);
+                pokemonGUI.mostrarBattlePvMPanel();
+                pokemonGUI.setTipoMaquinaSeleccionada(tipoDeMaquinaSeleccionado);
             } else {
                 JOptionPane.showMessageDialog(this,
-                    "Debes asignar 4 movimientos a cada Pokémon",
+                    "Falta asignar movimientos:\n" + errorMessage.toString(),
                     "Movimientos incompletos",
                     JOptionPane.WARNING_MESSAGE);
             }
         });
         
-        btnSiguiente.addActionListener(e -> {
-        	setModoJuego(ModoJuego.PVM); 
-            pokemonGUI.mostrarBattlePvMPanel();  
-            pokemonGUI.setTipoMaquinaSeleccionada(tipoDeMaquinaSeleccionado);
-        });
     }
 
     private void setModoJuego(ModoJuego pvm) {
 		// TODO Auto-generated method stub
 		
 	}
+    
+    private void verificarMovimientosCompletos() {
+        System.out.println("\n=== Verificación de Movimientos ===");
+        boolean allHaveMovements = true;
+        Map<String, Integer> movimientosPorPokemon = new HashMap<>();
 
-	private void loadPokemonMovements(Pokemon pokemon) {
+        for (Pokemon p : pokemones) {
+            List<Movimiento> movements = movimientosAsignados.get(p);
+            int numMovimientos = (movements != null ? movements.size() : 0);
+            boolean hasMovements = numMovimientos >= 1;
+            
+            movimientosPorPokemon.put(p.getNombre(), numMovimientos);
+            
+            System.out.println(String.format(
+                "Pokémon: %-10s - Movimientos: %d - Tiene suficientes: %s",
+                p.getNombre(),
+                numMovimientos,
+                hasMovements
+            ));
+            
+            allHaveMovements &= hasMovements;
+        }
 
-    	if (pokemon == null) {
+        System.out.println("Estado del mapa de movimientos:");
+        movimientosAsignados.forEach((pokemon, moves) -> 
+            System.out.println(pokemon.getNombre() + ": " + moves.size() + " movimientos"));
+
+        btnConfirmarYSiguiente.setEnabled(allHaveMovements);
+        System.out.println("Botón habilitado: " + allHaveMovements);
+    }
+
+    private void loadPokemonMovements(Pokemon pokemon) {
+        if (pokemon == null) {
             availableModel.clear();
             selectedModel.clear();
+            verificarMovimientosCompletos();
             return;
         }
-    	
-    	if (cbPokemons.getSelectedIndex() > 0) {
-            saveCurrentPokemonMovements((Pokemon) cbPokemons.getItemAt(cbPokemons.getSelectedIndex()-1));
-        }
 
+        // Guardar los movimientos del pokemon actual antes de cargar el nuevo
+        Pokemon previousPokemon = (Pokemon) cbPokemons.getSelectedItem();
+        if (previousPokemon != null) {
+            saveCurrentPokemonMovements(previousPokemon);
+        }
 
         availableModel.clear();
         selectedModel.clear();
 
-
-        List<Movimiento> allPossibleMovements = new ArrayList<>();
+        // Obtener todos los movimientos posibles para el pokemon
+        Set<Movimiento> allPossibleMovements = new HashSet<>(); // Usar Set para evitar duplicados
         for (Tipo tipo : pokemon.getTipos()) {
-            allPossibleMovements.addAll(Movimiento.getMovimientosPorTipo(tipo));
+            List<Movimiento> movimientosTipo = Movimiento.getMovimientosPorTipo(tipo);
+            if (movimientosTipo != null) {
+                allPossibleMovements.addAll(movimientosTipo);
+            }
         }
-        
 
-        List<Movimiento> assignedToOthers = new ArrayList<>();
+        // Debugging: Imprimir tipos y movimientos disponibles
+        System.out.println("\n=== Cargando movimientos para " + pokemon.getNombre() + " ===");
+        System.out.println("Tipos del Pokémon: " + Arrays.toString(pokemon.getTipos().toArray()));
+        System.out.println("Movimientos posibles encontrados: " + allPossibleMovements.size());
+
+        // Obtener movimientos ya asignados a otros pokemon
+        Set<Movimiento> assignedToOthers = new HashSet<>();
         movimientosAsignados.entrySet().stream()
             .filter(entry -> !entry.getKey().equals(pokemon))
             .forEach(entry -> assignedToOthers.addAll(entry.getValue()));
-        
 
-        List<Movimiento> alreadyAssigned = movimientosAsignados.getOrDefault(pokemon, List.of());
+        // Obtener movimientos ya asignados a este pokemon
+        List<Movimiento> alreadyAssigned = movimientosAsignados.getOrDefault(pokemon, new ArrayList<>());
         
+        // Agregar primero los movimientos ya asignados
+        alreadyAssigned.forEach(mov -> {
+            selectedModel.addElement(mov);
+            System.out.println("Movimiento ya asignado: " + mov.getName());
+        });
+
+        // Agregar los movimientos disponibles que no están asignados a otros
         allPossibleMovements.stream()
-        .filter(m -> !assignedToOthers.contains(m) || alreadyAssigned.contains(m))
-        .forEach(availableModel::addElement);
-            
-        alreadyAssigned.forEach(selectedModel::addElement);
+            .filter(m -> !assignedToOthers.contains(m) || alreadyAssigned.contains(m))
+            .forEach(m -> {
+                if (!alreadyAssigned.contains(m)) {
+                    availableModel.addElement(m);
+                    System.out.println("Movimiento disponible añadido: " + m.getName());
+                }
+            });
+
+        verificarMovimientosCompletos();
     }
 
-    private void saveCurrentPokemonMovements(Pokemon pokemon) {
-        List<Movimiento> movements = new ArrayList<>();
-        for (int i = 0; i < selectedModel.size(); i++) {
-            movements.add(selectedModel.getElementAt(i));
-        }
-        movimientosAsignados.put(pokemon, movements);
-    }
+	private void saveCurrentPokemonMovements(Pokemon pokemon) {
+	    if (pokemon == null) {
+	        System.out.println("ERROR: Intentando guardar movimientos para un Pokémon null");
+	        return;
+	    }
+
+	    List<Movimiento> movements = new ArrayList<>();
+	    for (int i = 0; i < selectedModel.size(); i++) {
+	        movements.add(selectedModel.getElementAt(i));
+	    }
+
+	    System.out.println("\n=== Guardando movimientos para " + pokemon.getNombre() + " ===");
+	    System.out.println("Número de movimientos a guardar: " + movements.size());
+	    movements.forEach(m -> System.out.println("- " + m.getName()));
+
+	    movimientosAsignados.put(pokemon, new ArrayList<>(movements));
+
+	    // Verificar que los movimientos se guardaron correctamente
+	    List<Movimiento> savedMovements = movimientosAsignados.get(pokemon);
+	    System.out.println("Movimientos guardados efectivamente: " + 
+	        (savedMovements != null ? savedMovements.size() : 0));
+
+	    verificarMovimientosCompletos();
+	}
     
     public void showError(String mensaje) {
         JOptionPane.showMessageDialog(this, mensaje, "Error", JOptionPane.ERROR_MESSAGE);
     }
     
-    private void confirmSelection() {
-        if (selectedPokemons.size() < 1) {
-            showError("Debes seleccionar al menos 1 Pokémon");
-            return;
-        }
-        pokemonGUI.setSelectedPokemons(new ArrayList<>(selectedPokemons));
-        pokemonGUI.setPokemonMovements(new HashMap<>(movimientosAsignados));
-    }
 }
