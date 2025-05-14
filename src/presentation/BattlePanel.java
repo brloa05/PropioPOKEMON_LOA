@@ -88,7 +88,7 @@ public class BattlePanel extends JPanel {
         
         // Cargar imágenes
         try {
-            // Cambiar la ruta para coincidir con la ubicación real del archivo
+            // Cargar imagen de fondo
             URL backgroundUrl = getClass().getResource("/resource/Desktop - 4.gif");
             if (backgroundUrl != null) {
                 backgroundImage = ImageIO.read(backgroundUrl);
@@ -97,6 +97,7 @@ public class BattlePanel extends JPanel {
                 createBackupImages();
             }
             
+            // Las imágenes de los Pokémon se cargarán cuando se necesiten
             playerPokemonImage = loadPokemonImage(pokemonJugador.getNombre(), true);
             enemyPokemonImage = loadPokemonImage(pokemonOponente.getNombre(), false);
         } catch (IOException e) {
@@ -241,7 +242,6 @@ public class BattlePanel extends JPanel {
             if (imageUrl == null) {
                 throw new FileNotFoundException("No se encontró el recurso: " + imagePath);
             }
-            
             return ImageIO.read(imageUrl);
         } catch (Exception e) {
             System.err.println("Error cargando imagen para " + pokemonName + ": " + e.getMessage());
@@ -307,66 +307,70 @@ public class BattlePanel extends JPanel {
     }
 
     private JPanel createPokemonInfoPanel(Pokemon pokemon, boolean isPlayer) {
-        JPanel panel = new JPanel();
-        panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
-        panel.setOpaque(false);
+    JPanel panel = new JPanel();
+    panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
+    panel.setOpaque(false);
 
-        // Panel de información (nombre, HP, estado)
-        JPanel infoPanel = new JPanel(new GridLayout(3, 1, 2, 2));
-        infoPanel.setOpaque(false);
-        
-        // Nombre del Pokémon
-        JLabel nameLabel = new JLabel(pokemon.getNombre());
-        nameLabel.setForeground(Color.WHITE);
-        nameLabel.setFont(new Font("Arial", Font.BOLD, 16));
-        
-        // Barra de salud
-        JProgressBar healthBar = new JProgressBar(0, pokemon.getSaludMaxima());
-        healthBar.setValue(pokemon.getSalud());
-        healthBar.setForeground(getHealthColor(pokemon));
-        healthBar.setString(pokemon.getSalud() + "/" + pokemon.getSaludMaxima());
-        healthBar.setStringPainted(true);
-        
-        // Estado
-        JLabel stateLabel = new JLabel("Normal");
-        stateLabel.setForeground(Color.WHITE);
+    // Panel de información (nombre, HP, estado)
+    JPanel infoPanel = new JPanel(new GridLayout(3, 1, 2, 2));
+    infoPanel.setOpaque(false);
+    
+    // Nombre del Pokémon
+    JLabel nameLabel = new JLabel(pokemon.getNombre());
+    nameLabel.setForeground(Color.WHITE);
+    nameLabel.setFont(new Font("Arial", Font.BOLD, 16));
+    
+    // Barra de salud
+    JProgressBar healthBar = new JProgressBar(0, pokemon.getSaludMaxima());
+    healthBar.setValue(pokemon.getSalud());
+    healthBar.setForeground(getHealthColor(pokemon));
+    healthBar.setString(pokemon.getSalud() + "/" + pokemon.getSaludMaxima());
+    healthBar.setStringPainted(true);
+    
+    // Estado
+    JLabel stateLabel = new JLabel("Normal");
+    stateLabel.setForeground(Color.WHITE);
 
-        if (isPlayer) {
-            playerNameLabel = nameLabel;
-            playerHealthBar = healthBar;
-            playerStateLabel = stateLabel;
-        } else {
-            enemyNameLabel = nameLabel;
-            enemyHealthBar = healthBar;
-            enemyStateLabel = stateLabel;
-        }
+    if (isPlayer) {
+        playerNameLabel = nameLabel;
+        playerHealthBar = healthBar;
+        playerStateLabel = stateLabel;
+    } else {
+        enemyNameLabel = nameLabel;
+        enemyHealthBar = healthBar;
+        enemyStateLabel = stateLabel;
+    }
 
-        infoPanel.add(nameLabel);
-        infoPanel.add(healthBar);
-        infoPanel.add(stateLabel);
+    infoPanel.add(nameLabel);
+    infoPanel.add(healthBar);
+    infoPanel.add(stateLabel);
 
-        // Panel de la imagen del Pokémon
-        JPanel imagePanel = new JPanel(new BorderLayout());
-        imagePanel.setOpaque(false);
-        
-        BufferedImage pokemonImage = isPlayer ? playerPokemonImage : enemyPokemonImage;
+    // Panel de la imagen del Pokémon
+    JPanel imagePanel = new JPanel(new BorderLayout());
+    imagePanel.setOpaque(false);
+    
+    try {
+        BufferedImage pokemonImage = loadPokemonImage(pokemon.getNombre(), isPlayer);
         if (pokemonImage != null) {
             Image scaledImage = pokemonImage.getScaledInstance(200, 200, Image.SCALE_SMOOTH);
             JLabel imageLabel = new JLabel(new ImageIcon(scaledImage));
             imagePanel.add(imageLabel, BorderLayout.CENTER);
         } else {
-            // Crear una imagen de placeholder si la imagen es null
-            BufferedImage placeholder = createPlaceholderImage();
-            Image scaledPlaceholder = placeholder.getScaledInstance(200, 200, Image.SCALE_SMOOTH);
-            JLabel placeholderLabel = new JLabel(new ImageIcon(scaledPlaceholder));
-            imagePanel.add(placeholderLabel, BorderLayout.CENTER);
+            throw new Exception("No se pudo cargar la imagen");
         }
-
-        panel.add(infoPanel);
-        panel.add(imagePanel);
-
-        return panel;
+    } catch (Exception e) {
+        // Si hay un error, usar imagen placeholder
+        BufferedImage placeholder = createPlaceholderImage();
+        Image scaledPlaceholder = placeholder.getScaledInstance(200, 200, Image.SCALE_SMOOTH);
+        JLabel placeholderLabel = new JLabel(new ImageIcon(scaledPlaceholder));
+        imagePanel.add(placeholderLabel, BorderLayout.CENTER);
     }
+
+    panel.add(infoPanel);
+    panel.add(imagePanel);
+
+    return panel;
+}
 
     private Color getHealthColor(Pokemon pokemon) {
         double percentage = (double) pokemon.getSalud() / pokemon.getSaludMaxima();
