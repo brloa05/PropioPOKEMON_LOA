@@ -24,8 +24,8 @@ public class PokemonSelectionPvMPanel extends JPanel {
     private JComboBox<String> cbPokemons;
     private JButton btnAddPokemon;
     private JButton btnRemovePokemon;
-    private JButton btnConfirm;
-    private JButton btnNext;
+    private JButton btnConfirmAndNext;
+    private JButton btnReset;
     private JButton btnBack;
     private JList<String> selectedPokemonsList;
     private DefaultListModel<String> listModel;
@@ -118,15 +118,14 @@ public class PokemonSelectionPvMPanel extends JPanel {
         JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 0));
         
         btnBack = new JButton("Regresar");
-        btnConfirm = new JButton("Confirmar selección (" + selectedPokemons.size() + "/" + MAX_POKEMONS + ")");
-        btnNext = new JButton("Siguiente");
+        btnReset = new JButton("Resetear");  // Nuevo botón
+        btnConfirmAndNext = new JButton("Confirmar y Siguiente (" + selectedPokemons.size() + "/" + MAX_POKEMONS + ")"); // Botón combinado
         
-        btnConfirm.setEnabled(false);
-        btnNext.setEnabled(false);
+        btnConfirmAndNext.setEnabled(false);
         
         buttonPanel.add(btnBack);
-        buttonPanel.add(btnConfirm);
-        buttonPanel.add(btnNext);
+        buttonPanel.add(btnReset);
+        buttonPanel.add(btnConfirmAndNext);
         
         bottomPanel.add(new JScrollPane(selectedPokemonsList), BorderLayout.CENTER);
         bottomPanel.add(buttonPanel, BorderLayout.SOUTH);
@@ -156,34 +155,60 @@ public class PokemonSelectionPvMPanel extends JPanel {
 
         btnAddPokemon.addActionListener(e -> addSelectedPokemon());
         btnRemovePokemon.addActionListener(e -> removeSelectedPokemon());
-        
+
+        btnReset.addActionListener(e -> {
+            if (!selectedPokemons.isEmpty()) {
+                int response = JOptionPane.showConfirmDialog(this,
+                    "¿Estás seguro que deseas resetear todos los Pokémon seleccionados?",
+                    "Confirmar reseteo",
+                    JOptionPane.YES_NO_OPTION);
+                
+                if (response == JOptionPane.YES_OPTION) {
+                    resetSelectedPokemons();
+                }
+            }
+        });
+
         btnBack.addActionListener(e -> {
-            pokemonGUI.volverAlMenuPrincipal();
+            if (!selectedPokemons.isEmpty()) {
+                int response = JOptionPane.showConfirmDialog(this,
+                    "¿Estás seguro que deseas regresar? Se perderán todas las selecciones.",
+                    "Confirmar regreso",
+                    JOptionPane.YES_NO_OPTION);
+                
+                if (response == JOptionPane.YES_OPTION) {
+                    resetSelectedPokemons();
+                    pokemonGUI.mostrarMenuItemsPvMPanel(); // Nueva función que debes crear en PokemonGUI
+                }
+            } else {
+                pokemonGUI.mostrarMenuItemsPvMPanel();
+            }
         });
-
-        btnNext.addActionListener(e -> {
-            if (selectedPokemons.isEmpty()) {
-                showError("Debes seleccionar al menos 1 Pokémon");
+        
+        btnConfirmAndNext.addActionListener(e -> {
+            if (selectedPokemons.size() < MAX_POKEMONS) {
+                showError("Debes seleccionar exactamente " + MAX_POKEMONS + " Pokémon");
                 return;
             }
-            pokemonGUI.setSelectedPokemons(new ArrayList<>(selectedPokemons));
-            pokemonGUI.mostrarMovimientoSelectionPvMPanel(selectedPokemons);
-        });
-
-        btnConfirm.addActionListener(e -> {
-            if (selectedPokemons.isEmpty()) {
-                showError("Debes seleccionar al menos 1 Pokémon");
-                return;
-            }
+            
             if (JOptionPane.showConfirmDialog(this,
                 "¿Estás seguro de tu selección de Pokémon?",
                 "Confirmar selección",
                 JOptionPane.YES_NO_OPTION) == JOptionPane.YES_OPTION) {
                 
                 pokemonGUI.setSelectedPokemons(new ArrayList<>(selectedPokemons));
-                pokemonGUI.displayCurrentPlayerData();  // Mostrar datos actualizados
+                pokemonGUI.displayCurrentPlayerData();
+                pokemonGUI.mostrarMovimientoSelectionPvMPanel(selectedPokemons);
             }
         });
+    }
+    
+    private void resetSelectedPokemons() {
+        selectedPokemons.clear();
+        listModel.clear();
+        typeCount.clear();
+        loadPokemonTypes();
+        updateConfirmAndNextButton();
     }
 
     private void loadPokemonTypes() {
@@ -339,7 +364,7 @@ public class PokemonSelectionPvMPanel extends JPanel {
         }
         
         loadPokemonsByType(Tipo.valueOf(((String) cbTypes.getSelectedItem()).toUpperCase()));
-        updateConfirmButton();
+        updateConfirmAndNextButton();
     }
 
     private void removeSelectedPokemon() {
@@ -359,13 +384,12 @@ public class PokemonSelectionPvMPanel extends JPanel {
         }
         
         loadPokemonsByType(Tipo.valueOf(((String) cbTypes.getSelectedItem()).toUpperCase()));
-        updateConfirmButton();
+        updateConfirmAndNextButton();
     }
 
-    private void updateConfirmButton() {
-        btnConfirm.setText("Confirmar selección (" + selectedPokemons.size() + "/" + MAX_POKEMONS + ")");
-        btnConfirm.setEnabled(!selectedPokemons.isEmpty());
-        btnNext.setEnabled(!selectedPokemons.isEmpty());
+    private void updateConfirmAndNextButton() {
+        btnConfirmAndNext.setText("Confirmar y Siguiente (" + selectedPokemons.size() + "/" + MAX_POKEMONS + ")");
+        btnConfirmAndNext.setEnabled(selectedPokemons.size() == MAX_POKEMONS);
     }
     
     private void showError(String message) {
