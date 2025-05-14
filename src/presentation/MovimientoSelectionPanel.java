@@ -108,14 +108,12 @@ public class MovimientoSelectionPanel extends JPanel {
             Pokemon current = (Pokemon) cbPokemons.getSelectedItem();
             saveCurrentPokemonMovements(current);
 
- 
             boolean allComplete = pokemones.stream()
                 .allMatch(p -> movimientosAsignados.getOrDefault(p, List.of()).size() == 4);
 
             if (allComplete) {
                 pokemonGUI.setPokemonMovements(new HashMap<>(movimientosAsignados));
-
-                //pokemonGUI.mostrarBattlePanel(null, null);
+                pokemonGUI.displayCurrentPlayerData();  // Mostrar datos actualizados
             } else {
                 JOptionPane.showMessageDialog(this,
                     "Debes asignar 4 movimientos a cada Pokémon",

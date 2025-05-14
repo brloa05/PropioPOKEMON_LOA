@@ -64,7 +64,13 @@ public class PokemonGUI extends JFrame {
     
     private List<Pokemon> selectedPokemons = new ArrayList<>();
     private Map<Pokemon, List<Movimiento>> pokemonMovements;
-
+    
+    private Map<String, List<Pokemon>> playerPokemons;
+    private Map<String, Map<Pokemon, List<Movimiento>>> playerMovements;
+    private String currentPlayer;
+    
+    
+    
     public PokemonGUI() {
     	setTitle("POOKemon");
     	prepareEntrenador();
@@ -293,8 +299,18 @@ public class PokemonGUI extends JFrame {
         setBounds((screen.width - width)/2, (screen.height-height)/2, width, height);
     }
     
-    public void comienzoAgregarEntrenadoresPorTipo1(String name, String tipo, String numero) {
-        if (name == null || tipo == null || numero == null) {
+    public void comienzoAgregarEntrenadoresPorTipo1(String nombre, String tipo, String id) {
+        this.currentPlayer = nombre;
+        playerPokemons.put(nombre, new ArrayList<>());
+        playerMovements.put(nombre, new HashMap<>());
+        
+        System.out.println("\n=== Nuevo Jugador Registrado ===");
+        System.out.println("Nombre: " + nombre);
+        System.out.println("Fecha: " + java.time.LocalDateTime.now().format(java.time.format.DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
+        System.out.println("==============================\n");
+        
+    	
+    	if (nombre == null || tipo == null || id == null) {
             throw new IllegalArgumentException("Ninguno de los argumentos puede ser null");
         }
 
@@ -304,13 +320,13 @@ public class PokemonGUI extends JFrame {
         }
 
         
-        entrenadores.put(name, tipo);
+        entrenadores.put(nombre, tipo);
 
         // Asignar al jugador correspondiente
-        if ("player1".equals(numero)) {
-            this.Entrenador1 = name;
-        } else if ("player2".equals(numero)) {
-            this.Entrenador2 = name;
+        if ("player1".equals(id)) {
+            this.Entrenador1 = nombre;
+        } else if ("player2".equals(id)) {
+            this.Entrenador2 = nombre;
         } else {
             throw new IllegalArgumentException("El valor de 'numero' debe ser 'player1' o 'player2'");
         }
@@ -457,18 +473,30 @@ public class PokemonGUI extends JFrame {
     }
 
     public void setSelectedPokemons(List<Pokemon> pokemons) {
-        this.selectedPokemons = pokemons;
+        if (currentPlayer != null) {
+            playerPokemons.put(currentPlayer, new ArrayList<>(pokemons));
+            System.out.println("\n=== Pokémon seleccionados por " + currentPlayer + " ===");
+            for (Pokemon pokemon : pokemons) {
+                System.out.println("- " + pokemon.getNombre());
+            }
+            System.out.println("=====================================\n");
+        }
     }
+
     
     public void setPokemonMovements(Map<Pokemon, List<Movimiento>> movements) {
-        this.pokemonMovements = movements;
-        System.out.println("Movimientos asignados:");
-        movements.forEach((p, m) -> {
-            System.out.println(p.getNombre() + ":");
-            m.forEach(mov -> System.out.println(" - " + mov.getName()));
-        });
-        
-       comenzarBatalla();
+        if (currentPlayer != null) {
+            playerMovements.put(currentPlayer, new HashMap<>(movements));
+            System.out.println("\n=== Movimientos asignados por " + currentPlayer + " ===");
+            for (Map.Entry<Pokemon, List<Movimiento>> entry : movements.entrySet()) {
+                System.out.println("Pokémon: " + entry.getKey().getNombre());
+                System.out.println("Movimientos:");
+                for (Movimiento mov : entry.getValue()) {
+                    System.out.println("  * " + mov.getName());
+                }
+            }
+            System.out.println("=====================================\n");
+        }
     }
     
     public void mostrarSeleccionMovimientos(List<Pokemon> pokemones) {
@@ -486,28 +514,46 @@ public class PokemonGUI extends JFrame {
         return allMovements;
     }
     
+    public List<Pokemon> getCurrentPlayerPokemons() {
+        return playerPokemons.get(currentPlayer);
+    }
+
     public Map<Pokemon, List<Movimiento>> getPokemonMovements() {
-        return pokemonMovements;
+        return playerMovements.get(currentPlayer);
     }
     
     private void comenzarBatalla() {
         Entrenador jugador = new EntrenadorPlayer("Jugador", "Player");
         Entrenador oponente = new EntrenadorMachine("Oponente", "Machine");
         
-        // Asignar Pokémon y sus movimientos
+        // Asignar Pokémon y sus movimientos al jugador
         for (Pokemon pokemon : selectedPokemons) {
             jugador.getPokemones().add(pokemon);
-            // Asegurarse de que cada Pokémon tenga al menos un movimiento
             if (!pokemonMovements.containsKey(pokemon)) {
                 pokemonMovements.put(pokemon, new ArrayList<>());
             }
         }
+
+        // Mostrar información en consola
+        System.out.println("\n=== Inicio de Batalla ===");
+        System.out.println("Jugador: " + currentPlayer);
+        System.out.println("Pokémon inicial: " + selectedPokemons.get(0).getNombre());
+        System.out.println("Movimientos disponibles:");
+        List<Movimiento> moves = pokemonMovements.get(selectedPokemons.get(0));
+        if (moves != null) {
+            for (Movimiento move : moves) {
+                System.out.println("- " + move.getName());
+            }
+        }
+        System.out.println("=====================\n");
 
         // Crear y mostrar el panel de batalla
         battlePanel = new BattlePanel(this, jugador, oponente);
         cardPanel.add(battlePanel, "BATTLE");
         cardLayout.show(cardPanel, "BATTLE");
     }
+    
+    
     
     public void iniciarBatalla(Entrenador jugador, Entrenador oponente) {
         if (jugador == null || oponente == null) {
@@ -516,13 +562,27 @@ public class PokemonGUI extends JFrame {
                 "Error", JOptionPane.ERROR_MESSAGE);
             return;
         }
-      
-        
-        
 
-       battlePanel = new BattlePanel(this, jugador, oponente);
-       cardPanel.add(battlePanel, "BATTLE");
-       cardLayout.show(cardPanel, "BATTLE");
+        // Mostrar información en consola
+        System.out.println("\n=== Inicio de Batalla ===");
+        System.out.println("Jugador: " + jugador.getName());
+        if (!jugador.getPokemones().isEmpty()) {
+            Pokemon primerPokemon = jugador.getPokemones().get(0);
+            System.out.println("Pokémon inicial: " + primerPokemon.getNombre());
+            System.out.println("Movimientos disponibles:");
+            List<Movimiento> moves = pokemonMovements.get(primerPokemon);
+            if (moves != null) {
+                for (Movimiento move : moves) {
+                    System.out.println("- " + move.getName());
+                }
+            }
+        }
+        System.out.println("Oponente: " + oponente.getName());
+        System.out.println("=====================\n");
+
+        battlePanel = new BattlePanel(this, jugador, oponente);
+        cardPanel.add(battlePanel, "BATTLE");
+        cardLayout.show(cardPanel, "BATTLE");
     }
     
     public List<String> getPokemonNames() {
@@ -554,6 +614,34 @@ public class PokemonGUI extends JFrame {
 
     public void setMovimientosSeleccionadosPlayer(List<String> seleccionados) {
         pokemonAplication.setMovimientosSeleccionadosPlayer(seleccionados);
+    }
+    
+    public void displayCurrentPlayerData() {
+        if (currentPlayer != null) {
+            System.out.println("\n========================================");
+            System.out.println("Datos del Jugador: " + currentPlayer);
+            System.out.println("Fecha: " + java.time.LocalDateTime.now().format(
+                java.time.format.DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
+            System.out.println("========================================");
+            
+            // Mostrar Pokémon y sus movimientos
+            System.out.println("\nPokémon seleccionados:");
+            List<Pokemon> pokemons = playerPokemons.get(currentPlayer);
+            if (pokemons != null) {
+                for (Pokemon pokemon : pokemons) {
+                    System.out.println("- " + pokemon.getNombre());
+                    // Mostrar movimientos de este Pokémon
+                    Map<Pokemon, List<Movimiento>> movements = playerMovements.get(currentPlayer);
+                    if (movements != null && movements.containsKey(pokemon)) {
+                        System.out.println("  Movimientos:");
+                        for (Movimiento mov : movements.get(pokemon)) {
+                            System.out.println("    * " + mov.getName());
+                        }
+                    }
+                }
+            }
+            System.out.println("========================================\n");
+        }
     }
     
     

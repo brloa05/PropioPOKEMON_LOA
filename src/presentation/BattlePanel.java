@@ -7,9 +7,11 @@ import domain.Movimiento.TipoEfecto;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.image.BufferedImage;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -35,6 +37,7 @@ public class BattlePanel extends JPanel {
     private JTextArea battleLog;
     private CardLayout actionCardLayout;
     private JPanel actionCards;
+    private static final Map<String, String> POKEMON_IMAGE_MAP = createPokemonImageMap();
 
     public BattlePanel(PokemonGUI pokemonGUI, Entrenador jugador, Entrenador oponente) {
         this.pokemonGUI = pokemonGUI;
@@ -85,10 +88,19 @@ public class BattlePanel extends JPanel {
         
         // Cargar imágenes
         try {
-            backgroundImage = ImageIO.read(getClass().getResource("/resource/battle_background.gif"));
+            // Cambiar la ruta para coincidir con la ubicación real del archivo
+            URL backgroundUrl = getClass().getResource("/resource/Desktop - 4.gif");
+            if (backgroundUrl != null) {
+                backgroundImage = ImageIO.read(backgroundUrl);
+            } else {
+                System.out.println("No se pudo encontrar la imagen de fondo");
+                createBackupImages();
+            }
+            
             playerPokemonImage = loadPokemonImage(pokemonJugador.getNombre(), true);
             enemyPokemonImage = loadPokemonImage(pokemonOponente.getNombre(), false);
         } catch (IOException e) {
+            System.out.println("Error al cargar imagen: " + e.getMessage());
             e.printStackTrace();
             createBackupImages();
         }
@@ -105,31 +117,31 @@ public class BattlePanel extends JPanel {
         };
         mainPanel.setOpaque(false);
 
-        // Panel de batalla (área roja en la imagen)
+        // Panel de batalla (área superior)
         JPanel battlePanel = new JPanel(new GridLayout(2, 2, 10, 10));
         battlePanel.setOpaque(false);
         battlePanel.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
 
-        // Panel del enemigo (área superior)
+        // Panel del enemigo
         JPanel enemyInfoPanel = createPokemonInfoPanel(pokemonOponente, false);
         battlePanel.add(enemyInfoPanel);
         battlePanel.add(new JPanel() {
             {setOpaque(false);}
-        }); // Espacio en blanco transparente
+        });
 
-        // Panel del jugador (área inferior)
+        // Panel del jugador
         JPanel playerInfoPanel = createPokemonInfoPanel(pokemonJugador, true);
         battlePanel.add(new JPanel() {
             {setOpaque(false);}
-        }); // Espacio en blanco transparente
+        });
         battlePanel.add(playerInfoPanel);
 
-        // Panel de acciones (área negra en la imagen)
+        // Panel de acciones (área inferior negra)
         JPanel bottomPanel = new JPanel(new BorderLayout());
         bottomPanel.setBackground(Color.BLACK);
         bottomPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
 
-        // Sistema de cartas para alternar entre menús
+        // Sistema de cartas para los menús
         actionCardLayout = new CardLayout();
         actionCards = new JPanel(actionCardLayout);
         actionCards.setOpaque(false);
@@ -152,7 +164,6 @@ public class BattlePanel extends JPanel {
         movesPanel.setOpaque(false);
         
         List<Movimiento> movimientos = new ArrayList<>();
-        // Obtener los movimientos del Pokémon si están disponibles
         Map<Pokemon, List<Movimiento>> pokemonMoves = pokemonGUI.getPokemonMovements();
         if (pokemonMoves != null && pokemonMoves.containsKey(pokemonJugador)) {
             movimientos = pokemonMoves.get(pokemonJugador);
@@ -170,15 +181,13 @@ public class BattlePanel extends JPanel {
             movesPanel.add(moveButtons[i]);
         }
 
-        // Botón de retorno en el panel de movimientos
+        // Botón de retorno
         JButton btnReturn = createStyledButton("Volver", new Color(200, 0, 0));
         btnReturn.addActionListener(e -> actionCardLayout.show(actionCards, "MAIN_BUTTONS"));
         movesPanel.add(btnReturn);
-        movesPanel.add(new JPanel() {
-            {setOpaque(false);}
-        }); // Panel vacío para mantener la simetría
+        movesPanel.add(new JPanel() {{setOpaque(false);}});
 
-        // Agregar los paneles de cartas
+        // Agregar los paneles al sistema de cartas
         actionCards.add(mainButtonsPanel, "MAIN_BUTTONS");
         actionCards.add(movesPanel, "MOVES");
 
@@ -194,9 +203,112 @@ public class BattlePanel extends JPanel {
         mainPanel.add(bottomPanel, BorderLayout.SOUTH);
 
         add(mainPanel);
-
-        // Asegurar que el panel principal ocupe todo el espacio disponible
         mainPanel.setPreferredSize(new Dimension(800, 600));
+    }
+    
+    private static Map<String, String> createPokemonImageMap() {
+        Map<String, String> map = new HashMap<>();
+        // Pokémon de un tipo
+        map.put("BLASTOISE", "/blastoise-Objetivo.gif");
+        map.put("SNORLAX", "/snorlax-Objetivo.gif");
+        map.put("DONPHAN", "/donphan-Objetivo.gif");
+        map.put("MACHAMP", "/machamp-Objetivo.gif");
+        map.put("RAICHU", "/raichu-Objetivo.gif");
+        
+        // Pokémon de dos tipos
+        map.put("CHARIZARD", "/charizard-Objetivo.gif");
+        map.put("VENUSAUR", "/venusaur-Objetivo.gif");
+        map.put("GENGAR", "/gengar-Objetivo.gif");
+        map.put("DRAGONITE", "/dragonite-Objetivo.gif");
+        map.put("TOGETIC", "/togetic-Objetivo.gif");
+        map.put("TYRANITAR", "/tyranitar-Objetivo.gif");
+        map.put("GARDEVOIR", "/gardevoir-Objetivo.gif");
+        map.put("METAGROSS", "/metagross-Objetivo.gif");
+        map.put("DELIBIRD", "/delibird-Objetivo.gif");
+        
+        return map;
+    }
+
+    private ImageIcon loadPokemonImage(String pokemonName, boolean isPlayer) {
+        if (pokemonName == null || pokemonName.isEmpty()) {
+            return null;
+        }
+
+        String imagePath = POKEMON_IMAGE_MAP.get(pokemonName.toUpperCase());
+        if (imagePath == null) {
+            System.err.println("No se encontró ruta de imagen para: " + pokemonName);
+            return null;
+        }
+
+        try {
+            URL imageUrl = getClass().getResource(imagePath);
+            if (imageUrl == null) {
+                throw new FileNotFoundException("No se encontró el recurso: " + imagePath);
+            }
+            
+            ImageIcon originalIcon = new ImageIcon(imageUrl);
+            
+            if (originalIcon.getIconWidth() > 0 && originalIcon.getIconHeight() > 0) {
+                double scale = Math.min(250.0 / originalIcon.getIconWidth(), 
+                                     250.0 / originalIcon.getIconHeight());
+                int width = (int)(originalIcon.getIconWidth() * scale);
+                int height = (int)(originalIcon.getIconHeight() * scale);
+                
+                return new ImageIcon(originalIcon.getImage().getScaledInstance(
+                    width, height, Image.SCALE_DEFAULT));
+            }
+            return originalIcon;
+        } catch (Exception e) {
+            System.err.println("Error cargando GIF animado para " + pokemonName + 
+                             ": " + e.getMessage());
+            return null;
+        }
+    }
+    
+    public void updateMovements(Pokemon pokemon) {
+        if (pokemon != null && pokemonGUI != null) {
+            Map<Pokemon, List<Movimiento>> movements = pokemonGUI.getPokemonMovements();
+            if (movements != null && movements.containsKey(pokemon)) {
+                List<Movimiento> pokemonMoves = movements.get(pokemon);
+                // Actualizar los botones de movimiento
+                for (int i = 0; i < moveButtons.length; i++) {
+                    if (i < pokemonMoves.size()) {
+                        Movimiento move = pokemonMoves.get(i);
+                        moveButtons[i].setText(move.getName());
+                        moveButtons[i].setEnabled(true);
+                    } else {
+                        moveButtons[i].setText("-");
+                        moveButtons[i].setEnabled(false);
+                    }
+                }
+            }
+        }
+    }
+
+    private void createBackupImages() {
+        backgroundImage = new BufferedImage(800, 600, BufferedImage.TYPE_INT_RGB);
+        Graphics2D g2d = backgroundImage.createGraphics();
+        g2d.setColor(new Color(100, 150, 200));
+        g2d.fillRect(0, 0, 800, 600);
+        g2d.setColor(Color.WHITE);
+        g2d.setFont(new Font("Arial", Font.BOLD, 24));
+        g2d.drawString("Batalla Pokémon", 300, 300);
+        g2d.dispose();
+
+        playerPokemonImage = createPlaceholderImage();
+        enemyPokemonImage = createPlaceholderImage();
+    }
+
+    private BufferedImage createPlaceholderImage() {
+        BufferedImage img = new BufferedImage(120, 120, BufferedImage.TYPE_INT_ARGB);
+        Graphics2D g2d = img.createGraphics();
+        g2d.setColor(Color.GRAY);
+        g2d.fillRect(0, 0, 120, 120);
+        g2d.setColor(Color.WHITE);
+        g2d.setFont(new Font("Arial", Font.BOLD, 14));
+        g2d.drawString("Pokémon", 30, 60);
+        g2d.dispose();
+        return img;
     }
 
     private JButton createStyledButton(String text, Color backgroundColor) {
@@ -224,7 +336,7 @@ public class BattlePanel extends JPanel {
         nameLabel.setForeground(Color.WHITE);
         nameLabel.setFont(new Font("Arial", Font.BOLD, 16));
         
-        // Barra de salud con color variable según el porcentaje
+        // Barra de salud
         JProgressBar healthBar = new JProgressBar(0, pokemon.getSaludMaxima());
         healthBar.setValue(pokemon.getSalud());
         healthBar.setForeground(getHealthColor(pokemon));
@@ -253,7 +365,6 @@ public class BattlePanel extends JPanel {
         JPanel imagePanel = new JPanel(new BorderLayout());
         imagePanel.setOpaque(false);
         
-        // Cargar y escalar la imagen del Pokémon
         BufferedImage pokemonImage = isPlayer ? playerPokemonImage : enemyPokemonImage;
         ImageIcon pokemonIcon = new ImageIcon(pokemonImage.getScaledInstance(200, 200, Image.SCALE_SMOOTH));
         JLabel imageLabel = new JLabel(pokemonIcon);
@@ -291,13 +402,6 @@ public class BattlePanel extends JPanel {
             }
         }
 
-        // Acción para el botón de retorno en el panel de movimientos
-        for (Component comp : ((JPanel)actionCards.getComponent(1)).getComponents()) {
-            if (comp instanceof JButton && ((JButton)comp).getText().equals("Volver")) {
-                ((JButton)comp).addActionListener(e -> actionCardLayout.show(actionCards, "MAIN_BUTTONS"));
-            }
-        }
-
         // Acciones para los botones de movimiento
         for (int i = 0; i < moveButtons.length; i++) {
             if (moveButtons[i].isEnabled()) {
@@ -311,36 +415,29 @@ public class BattlePanel extends JPanel {
     }
 
     private void handleItems() {
-        // Implementar manejo de items
         JOptionPane.showMessageDialog(this, "Función de items en desarrollo");
     }
 
     private void handlePokemonChange() {
-        // Implementar cambio de Pokémon
         JOptionPane.showMessageDialog(this, "Función de cambio de Pokémon en desarrollo");
     }
 
     private void executeMove(int moveIndex) {
         Movimiento movimiento = pokemonGUI.getPokemonMovements().get(pokemonJugador).get(moveIndex);
         
-        // Calcular y aplicar el daño
         int damage = calculateDamage(movimiento, pokemonJugador, pokemonOponente);
         pokemonOponente.recibirDanio(damage);
         
-        // Actualizar la interfaz
         updateHealthBars();
         
-        // Verificar si el oponente fue derrotado
         if (pokemonOponente.estaDebilitado()) {
             handlePokemonFainted(pokemonOponente);
         } else {
-            // Turno del oponente
             enemyTurn();
         }
     }
 
     private int calculateDamage(Movimiento movimiento, Pokemon attacker, Pokemon defender) {
-        // Implementar cálculo de daño según las reglas de Pokémon
         double baseDamage = movimiento.getPotencia() * 
             ((double)attacker.getAtaque() / defender.getDefensa());
         return (int)(baseDamage * (0.85 + Math.random() * 0.15));
@@ -349,18 +446,14 @@ public class BattlePanel extends JPanel {
     private void enemyTurn() {
         List<Movimiento> enemyMoves = pokemonGUI.getPokemonMovements().get(pokemonOponente);
         if (!enemyMoves.isEmpty()) {
-            // Seleccionar un movimiento aleatorio
             int moveIndex = (int)(Math.random() * enemyMoves.size());
             Movimiento selectedMove = enemyMoves.get(moveIndex);
             
-            // Calcular y aplicar el daño
             int damage = calculateDamage(selectedMove, pokemonOponente, pokemonJugador);
             pokemonJugador.recibirDanio(damage);
             
-            // Actualizar la interfaz
             updateHealthBars();
             
-            // Verificar si el jugador fue derrotado
             if (pokemonJugador.estaDebilitado()) {
                 handlePokemonFainted(pokemonJugador);
             }
@@ -372,11 +465,9 @@ public class BattlePanel extends JPanel {
         JOptionPane.showMessageDialog(this, message);
         
         if (pokemon == pokemonJugador) {
-            // El jugador perdió
             JOptionPane.showMessageDialog(this, "Has perdido la batalla!");
             pokemonGUI.mostrarMenuPrincipal();
         } else {
-            // El jugador ganó
             JOptionPane.showMessageDialog(this, "¡Has ganado la batalla!");
             pokemonGUI.mostrarMenuPrincipal();
         }
@@ -395,37 +486,5 @@ public class BattlePanel extends JPanel {
         
         revalidate();
         repaint();
-    }
-
-    private BufferedImage loadPokemonImage(String pokemonName, boolean isPlayer) throws IOException {
-        String suffix = isPlayer ? "Usuario" : "Objetivo";
-        String imagePath = "/" + pokemonName.toLowerCase() + "-" + suffix + ".gif";
-        URL imageUrl = getClass().getResource(imagePath);
-        if (imageUrl == null) {
-            throw new IOException("No se encontró la imagen: " + imagePath);
-        }
-        return ImageIO.read(imageUrl);
-    }
-
-    private void createBackupImages() {
-        backgroundImage = new BufferedImage(800, 600, BufferedImage.TYPE_INT_RGB);
-        Graphics2D g2d = backgroundImage.createGraphics();
-        g2d.setColor(new Color(100, 150, 200));
-        g2d.fillRect(0, 0, 800, 600);
-        g2d.dispose();
-
-        playerPokemonImage = createPlaceholderImage();
-        enemyPokemonImage = createPlaceholderImage();
-    }
-
-    private BufferedImage createPlaceholderImage() {
-        BufferedImage img = new BufferedImage(120, 120, BufferedImage.TYPE_INT_ARGB);
-        Graphics2D g2d = img.createGraphics();
-        g2d.setColor(Color.GRAY);
-        g2d.fillRect(0, 0, 120, 120);
-        g2d.setColor(Color.BLACK);
-        g2d.drawString("Pokémon", 30, 60);
-        g2d.dispose();
-        return img;
     }
 }

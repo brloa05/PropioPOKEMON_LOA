@@ -342,7 +342,7 @@ public class PokemonAplication {
 		}	
 	}
 	
-	// En PokemonAplication.java
+//desde aca 
 	public List<String> getPokemonNames() {
 	    List<String> nombres = new ArrayList<>();
 	    for (Pokemon pokemon : pokemones) {

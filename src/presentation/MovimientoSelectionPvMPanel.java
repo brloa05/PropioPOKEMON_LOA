@@ -26,7 +26,7 @@ public class MovimientoSelectionPvMPanel extends JPanel {
     private JButton btnConfirm;
     private JButton btnSiguiente;
     private List<Pokemon> selectedPokemons = new ArrayList<>();
-
+    
     public MovimientoSelectionPvMPanel(PokemonGUI pokemonGUI, List<Pokemon> pokemones) {
         this.pokemonGUI = pokemonGUI;
         this.pokemones = pokemones;
@@ -108,14 +108,12 @@ public class MovimientoSelectionPvMPanel extends JPanel {
             Pokemon current = (Pokemon) cbPokemons.getSelectedItem();
             saveCurrentPokemonMovements(current);
 
- 
             boolean allComplete = pokemones.stream()
                 .allMatch(p -> movimientosAsignados.getOrDefault(p, List.of()).size() == 4);
 
             if (allComplete) {
                 pokemonGUI.setPokemonMovements(new HashMap<>(movimientosAsignados));
-
-                //pokemonGUI.mostrarBattlePanel(null, null);
+                pokemonGUI.displayCurrentPlayerData();  // Mostrar datos actualizados
             } else {
                 JOptionPane.showMessageDialog(this,
                     "Debes asignar 4 movimientos a cada Pokémon",

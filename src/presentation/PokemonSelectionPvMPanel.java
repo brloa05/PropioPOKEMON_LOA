@@ -179,8 +179,9 @@ public class PokemonSelectionPvMPanel extends JPanel {
                 "¿Estás seguro de tu selección de Pokémon?",
                 "Confirmar selección",
                 JOptionPane.YES_NO_OPTION) == JOptionPane.YES_OPTION) {
+                
                 pokemonGUI.setSelectedPokemons(new ArrayList<>(selectedPokemons));
-                pokemonGUI.mostrarSeleccionMovimientos(new ArrayList<>(selectedPokemons));
+                pokemonGUI.displayCurrentPlayerData();  // Mostrar datos actualizados
             }
         });
     }
