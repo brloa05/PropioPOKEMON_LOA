@@ -41,18 +41,27 @@ public class BattlePvMPanel extends JPanel {
     private static final Map<String, String> POKEMON_IMAGE_MAP = createPokemonImageMap();
 
  // En el constructor de BattlePvMPanel
-    public BattlePvMPanel(PokemonGUI pokemonGUI, EntrenadorPlayer jugador, EntrenadorMachine maquina) {
+    public BattlePvMPanel(PokemonGUI pokemonGUI, Entrenador jugador2, EntrenadorMachine maquina) {
         this.pokemonGUI = pokemonGUI;
-        this.pokemonJugador = pokemonJugador;
-        this.pokemonMaquina = pokemonMaquina;
-        System.out.println("Pokemon Jugador: " + (pokemonJugador != null ? pokemonJugador.getNombre() : "null"));
-        System.out.println("Pokemon Máquina: " + (pokemonMaquina != null ? pokemonMaquina.getNombre() : "null"));
+        this.jugador = jugador2;
+        this.maquina = maquina;
+        
+        // Inicializar los Pokémon activos
+        if (jugador2 != null && !jugador2.getPokemones().isEmpty()) {
+            this.pokemonJugador = jugador2.getPokemones().get(0);
+        } else {
+            throw new IllegalStateException("El jugador debe tener al menos un Pokémon");
+        }
+        
+        if (maquina != null && !maquina.getPokemones().isEmpty()) {
+            this.pokemonMaquina = maquina.getPokemones().get(0);
+        } else {
+            throw new IllegalStateException("La máquina debe tener al menos un Pokémon");
+        }
         
         prepareElements();
-        
         prepareActions();
     }
-
     
     private static Map<String, String> createPokemonImageMap() {
         Map<String, String> map = new HashMap<>();
