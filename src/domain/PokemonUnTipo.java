@@ -16,8 +16,8 @@ public class PokemonUnTipo extends Pokemon {
         MACHAMP(Tipo.LUCHA, 384, 394, 284, 251, 295, 229),
         RAICHU(Tipo.ELECTRICO, 324, 306, 229, 306, 284, 350);
 
-        final Tipo tipo;
-        final int[] stats; // [saludMax, ataque, defensa, ataqueE, defensaE, velocidad]
+        public final Tipo tipo;
+        public final int[] stats; // [saludMax, ataque, defensa, ataqueE, defensaE, velocidad]
 
         PokemonBase(Tipo tipo, int... stats) {
             this.tipo = tipo;

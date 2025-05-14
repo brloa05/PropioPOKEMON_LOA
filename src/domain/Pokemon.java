@@ -292,4 +292,7 @@ public abstract class Pokemon {
 
 
 	
+
+
+	
 }

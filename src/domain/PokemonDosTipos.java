@@ -20,9 +20,9 @@ public class PokemonDosTipos extends Pokemon {
         METAGROSS(Tipo.ACERO, Tipo.PSIQUICO, 364, 405, 394, 317, 306, 262),
         DELIBIRD(Tipo.HIELO, Tipo.VOLADOR, 294, 229, 207, 251, 207, 273);
 
-        final Tipo tipo1;
+        public final Tipo tipo1;
         final Tipo tipo2;
-        final int[] stats; // [saludMax, ataque, defensa, ataqueE, defensaE, velocidad]
+        public final int[] stats; // [saludMax, ataque, defensa, ataqueE, defensaE, velocidad]
 
         PokemonBase(Tipo tipo1, Tipo tipo2, int... stats) {
             this.tipo1 = tipo1;

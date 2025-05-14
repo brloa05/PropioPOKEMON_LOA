@@ -17,9 +17,15 @@ import java.awt.event.*;
 import domain.Movimiento;
 import domain.Pokemon;
 import domain.PokemonAplication;
+import domain.PokemonDosTipos;
+import domain.PokemonUnTipo;
+import domain.AttackingTrainer;
+import domain.ChangingTrainer;
+import domain.DefensiveTrainer;
 import domain.Entrenador;
 import domain.EntrenadorMachine;
 import domain.EntrenadorPlayer;
+import domain.ExpertTrainer;
 import domain.Item;
 
 public class PokemonGUI extends JFrame {
@@ -248,21 +254,72 @@ public class PokemonGUI extends JFrame {
     }
     
     public void mostrarbattelPanel() {
-        // Obtener los entrenadores actuales
-        Entrenador jugador = new EntrenadorPlayer(Entrenador1, "Player");
-        Entrenador oponente = new EntrenadorMachine(Entrenador2, "Machine");
+    if (modoJuego.equals("PvM")) {
+        // Crear el jugador y asignar sus pokémon
+        EntrenadorPlayer jugador = new EntrenadorPlayer(currentPlayer, "Player");
+        if (playerPokemons.containsKey(currentPlayer)) {
+            jugador.setPokemones(playerPokemons.get(currentPlayer));
+            Map<Pokemon, List<Movimiento>> movimientos = playerMovements.get(currentPlayer);
+            // Asignar movimientos a cada pokémon
+            if (movimientos != null) {
+                for (Pokemon pokemon : jugador.getPokemones()) {
+                    List<Movimiento> movimientosPokemon = movimientos.get(pokemon);
+                    if (movimientosPokemon != null) {
+                        pokemon.setMovimientos(movimientosPokemon);
+                    }
+                }
+            }
+        }
         
-        // Asignar los pokémones y movimientos al jugador desde los mapas existentes
+        // Crear la máquina según el tipo seleccionado (ExpertTrainer, AttackingTrainer, etc.)
+        EntrenadorMachine maquina;
+        switch(tipoMaquinaSeleccionado) { // Asegúrate de tener esta variable
+            case "ExpertTrainer":
+                maquina = new ExpertTrainer("Machine", "Machine");
+                break;
+            case "AttackingTrainer":
+                maquina = new AttackingTrainer("Machine", "Machine");
+                break;
+            case "DefensiveTrainer":
+                maquina = new DefensiveTrainer("Machine", "Machine");
+                break;
+            case "ChangingTrainer":
+                maquina = new ChangingTrainer("Machine", "Machine");
+                break;
+            default:
+                maquina = new ExpertTrainer("Machine", "Machine");
+        }
+        
+        try {
+            BattlePvMPanel battlePvMPanel = new BattlePvMPanel(this, jugador, maquina);
+            cardPanel.add(battlePvMPanel, "BATTLE");
+            cardLayout.show(cardPanel, "BATTLE");
+        } catch (IllegalStateException e) {
+            JOptionPane.showMessageDialog(
+                this,
+                "Error al iniciar la batalla: " + e.getMessage(),
+                "Error",
+                JOptionPane.ERROR_MESSAGE
+            );
+            volverAlMenuPrincipal();
+        }
+    } else {
+        // Modo PvP - usar el BattlePanel original
+        Entrenador jugador1 = new EntrenadorPlayer(Entrenador1, "Player");
+        Entrenador jugador2 = new EntrenadorPlayer(Entrenador2, "Player");
+        
         if (playerPokemons.containsKey(Entrenador1)) {
-            jugador.setPokemones(playerPokemons.get(Entrenador1));
+            jugador1.setPokemones(playerPokemons.get(Entrenador1));
         }
         if (playerPokemons.containsKey(Entrenador2)) {
-            oponente.setPokemones(playerPokemons.get(Entrenador2));
+            jugador2.setPokemones(playerPokemons.get(Entrenador2));
         }
         
-        // Iniciar la batalla con los entrenadores configurados
-        iniciarBatalla(jugador, oponente);
+        battlePanel = new BattlePanel(this, jugador1, jugador2);
+        cardPanel.add(battlePanel, "BATTLE");
+        cardLayout.show(cardPanel, "BATTLE");
     }
+}
     
     
     
@@ -520,6 +577,7 @@ public class PokemonGUI extends JFrame {
         cardPanel.add(movimientoPanel, "MOVEMENT_SELECTION");
         cardLayout.show(cardPanel, "MOVEMENT_SELECTION");
     }
+    
 
     public List<Movimiento> inicializarMovimientos() {
         List<Movimiento> allMovements = new ArrayList<>();
@@ -539,46 +597,53 @@ public class PokemonGUI extends JFrame {
     }
     
     private void comenzarBatalla() {
-        Entrenador jugador = new EntrenadorPlayer("Jugador", "Player");
-        Entrenador oponente = new EntrenadorMachine("Oponente", "Machine");
+        // Crear los entrenadores
+        EntrenadorPlayer jugador = new EntrenadorPlayer(currentPlayer, "Player");
+        EntrenadorMachine maquina = new EntrenadorMachine("Machine1", "Machine");
         
-        // Asignar Pokémon y sus movimientos al jugador
-        for (Pokemon pokemon : selectedPokemons) {
-            jugador.getPokemones().add(pokemon);
-            if (!pokemonMovements.containsKey(pokemon)) {
-                pokemonMovements.put(pokemon, new ArrayList<>());
+        // Asignar pokémon y movimientos al jugador
+        if (playerPokemons.containsKey(currentPlayer)) {
+            jugador.setPokemones(playerPokemons.get(currentPlayer));
+        }
+        
+        // Crear mapas para la máquina
+        Map<Pokemon.Tipo, List<Pokemon>> pokemonesPorTipo = new HashMap<>();
+        
+        // Agrupar pokémon de un tipo
+        for (PokemonUnTipo.PokemonBase base : PokemonUnTipo.PokemonBase.values()) {
+            if (!pokemonesPorTipo.containsKey(base.tipo)) {
+                pokemonesPorTipo.put(base.tipo, new ArrayList<>());
             }
+            Pokemon pokemon = new PokemonUnTipo(base.name(), base.stats[0], new ArrayList<>());
+            pokemonesPorTipo.get(base.tipo).add(pokemon);
         }
-
-        // Mostrar información en consola
-        System.out.println("\n=== Inicio de Batalla ===");
-        System.out.println("Jugador: " + currentPlayer);
-        System.out.println("Pokémon inicial: " + selectedPokemons.get(0).getNombre());
-        System.out.println("Movimientos disponibles:");
-        List<Movimiento> moves = pokemonMovements.get(selectedPokemons.get(0));
-        if (moves != null) {
-            for (Movimiento move : moves) {
-                System.out.println("- " + move.getName());
+        
+        // Agrupar pokémon de dos tipos
+        for (PokemonDosTipos.PokemonBase base : PokemonDosTipos.PokemonBase.values()) {
+            if (!pokemonesPorTipo.containsKey(base.tipo1)) {
+                pokemonesPorTipo.put(base.tipo1, new ArrayList<>());
             }
+            Pokemon pokemon = new PokemonDosTipos(base.name(), base.stats[0], new ArrayList<>());
+            pokemonesPorTipo.get(base.tipo1).add(pokemon);
         }
-        System.out.println("=====================\n");
-
-        // Crear y mostrar el panel de batalla
-        battlePanel = new BattlePanel(this, jugador, oponente);
-        cardPanel.add(battlePanel, "BATTLE");
-        cardLayout.show(cardPanel, "BATTLE");
-    }
-    
-    
-    
-    public void iniciarBatalla(Entrenador jugador, Entrenador oponente) {
-        if (jugador == null || oponente == null) {
-            JOptionPane.showMessageDialog(this, 
-                "Debes seleccionar ambos entrenadores primero", 
-                "Error", JOptionPane.ERROR_MESSAGE);
-            return;
+        
+        // Crear mapa de movimientos por tipo
+        Map<Pokemon.Tipo, List<Movimiento>> movimientosPorTipo = new HashMap<>();
+        for (Pokemon.Tipo tipo : Pokemon.Tipo.values()) {
+            movimientosPorTipo.put(tipo, Movimiento.getMovimientosPorTipo(tipo));
         }
-
+        
+        // Que la máquina escoja sus pokémon según su estrategia
+        maquina.escogerPokemonesTipo(pokemonesPorTipo);
+        
+        // Asignar movimientos a cada pokémon de la máquina
+        for (Pokemon pokemon : maquina.getPokemones()) {
+            maquina.agregarMovimientos(pokemon, movimientosPorTipo, new ArrayList<>());
+        }
+        
+        // Asignar items según la estrategia de la máquina
+        maquina.escogerItemsTipo();
+        
         // Mostrar información en consola
         System.out.println("\n=== Inicio de Batalla ===");
         System.out.println("Jugador: " + jugador.getName());
@@ -593,13 +658,109 @@ public class PokemonGUI extends JFrame {
                 }
             }
         }
+        System.out.println("Oponente: " + maquina.getName());
+        System.out.println("=====================\n");
+
+        // Crear y mostrar el panel de batalla
+        battlePanel = new BattlePanel(this, jugador, maquina);
+        cardPanel.add(battlePanel, "BATTLE");
+        cardLayout.show(cardPanel, "BATTLE");
+    }
+    
+    private void verificarDatosBatalla(Entrenador jugador, Entrenador oponente) {
+	    // Verificar que los entrenadores existan
+	    if (jugador == null || oponente == null) {
+	        throw new IllegalStateException("Debes seleccionar ambos entrenadores primero");
+	    }
+	    
+	    // Verificar que tengan pokémones asignados
+	    if (jugador.getPokemones() == null || jugador.getPokemones().isEmpty()) {
+	        throw new IllegalStateException("El jugador " + jugador.getName() + " no tiene pokémones asignados");
+	    }
+	    if (oponente.getPokemones() == null || oponente.getPokemones().isEmpty()) {
+	        throw new IllegalStateException("El oponente " + oponente.getName() + " no tiene pokémones asignados");
+	    }
+	    
+	    // Verificar que tengan movimientos asignados
+	    if (!pokemonMovements.containsKey(jugador.getPokemones().get(0))) {
+	        throw new IllegalStateException("No se han asignado movimientos al pokémon inicial del jugador");
+	    }
+	    if (!pokemonMovements.containsKey(oponente.getPokemones().get(0))) {
+	        throw new IllegalStateException("No se han asignado movimientos al pokémon inicial del oponente");
+	    }
+    }
+    
+    private void asignarPokemonesYMovimientosMaquina(EntrenadorMachine maquina) {
+        // Crear el mapa de pokémon por tipo
+        Map<Pokemon.Tipo, List<Pokemon>> pokemonesPorTipo = new HashMap<>();
+        
+        // Agrupar pokémon de un tipo
+        for (PokemonUnTipo.PokemonBase base : PokemonUnTipo.PokemonBase.values()) {
+            if (!pokemonesPorTipo.containsKey(base.tipo)) {
+                pokemonesPorTipo.put(base.tipo, new ArrayList<>());
+            }
+            Pokemon pokemon = new PokemonUnTipo(base.name(), base.stats[0], new ArrayList<>());
+            pokemonesPorTipo.get(base.tipo).add(pokemon);
+        }
+        
+        // Agrupar pokémon de dos tipos
+        for (PokemonDosTipos.PokemonBase base : PokemonDosTipos.PokemonBase.values()) {
+            if (!pokemonesPorTipo.containsKey(base.tipo1)) {
+                pokemonesPorTipo.put(base.tipo1, new ArrayList<>());
+            }
+            Pokemon pokemon = new PokemonDosTipos(base.name(), base.stats[0], new ArrayList<>());
+            pokemonesPorTipo.get(base.tipo1).add(pokemon);
+        }
+        
+        // Crear mapa de movimientos por tipo
+        Map<Pokemon.Tipo, List<Movimiento>> movimientosPorTipo = new HashMap<>();
+        for (Pokemon.Tipo tipo : Pokemon.Tipo.values()) {
+            movimientosPorTipo.put(tipo, Movimiento.getMovimientosPorTipo(tipo));
+        }
+        
+        // Que la máquina escoja sus pokémon según su estrategia
+        maquina.escogerPokemonesTipo(pokemonesPorTipo);
+        
+        // Asignar movimientos a cada pokémon de la máquina
+        for (Pokemon pokemon : maquina.getPokemones()) {
+            maquina.agregarMovimientos(pokemon, movimientosPorTipo, new ArrayList<>());
+        }
+        
+        // Asignar items según la estrategia de la máquina
+        maquina.escogerItemsTipo();
+    }
+    
+    
+    
+    public void iniciarBatalla(Entrenador jugador, Entrenador oponente) {
+    try {
+        verificarDatosBatalla(jugador, oponente);
+        
+        // Mostrar información en consola
+        System.out.println("\n=== Inicio de Batalla ===");
+        System.out.println("Jugador: " + jugador.getName());
+        Pokemon primerPokemon = jugador.getPokemones().get(0);
+        System.out.println("Pokémon inicial: " + primerPokemon.getNombre());
+        System.out.println("Movimientos disponibles:");
+        List<Movimiento> moves = pokemonMovements.get(primerPokemon);
+        if (moves != null) {
+            for (Movimiento move : moves) {
+                System.out.println("- " + move.getName());
+            }
+        }
         System.out.println("Oponente: " + oponente.getName());
         System.out.println("=====================\n");
 
         battlePanel = new BattlePanel(this, jugador, oponente);
         cardPanel.add(battlePanel, "BATTLE");
         cardLayout.show(cardPanel, "BATTLE");
+    } catch (IllegalStateException e) {
+        JOptionPane.showMessageDialog(this, 
+            e.getMessage(), 
+            "Error", 
+            JOptionPane.ERROR_MESSAGE);
     }
+}
     
     public List<String> getPokemonNames() {
         if (pokemonAplication == null) {
