@@ -48,7 +48,6 @@ public class PokemonGUI extends JFrame {
     private String Entrenador2;
     private Entrenador jugador;
     private Entrenador oponente;
-    private String tipoMaquinaSeleccionada;
     private MenuItemsPvMPanel menuItemsPvMPanel;
     private MovimientoSelectionPanel movimientoSelectionPanel;
     private MovimientoSelectionPanelTwo movimientoSelectionPanelTwo;
@@ -76,6 +75,8 @@ public class PokemonGUI extends JFrame {
     private Map<String, Map<Pokemon, List<Movimiento>>> playerMovements;
     private String currentPlayer;
     
+    private String tipoMaquinaSeleccionada = "Normal";
+    
     
     
     public PokemonGUI() {
@@ -90,6 +91,7 @@ public class PokemonGUI extends JFrame {
         prepareAcciones();
         mostrarPantallaIntro();
         centrarVentana();
+        this.tipoMaquinaSeleccionada = "Normal";
     }
     
     public void prepareEntrenador() {
@@ -252,6 +254,10 @@ public class PokemonGUI extends JFrame {
     
     public void mostrarPokemonSelectionPvMPanel() {
     	cardLayout.show(cardPanel, "MAIN POK PVM");
+    }
+    
+    public void setTipoMaquinaSeleccionada(String tipo) {
+        this.tipoMaquinaSeleccionada = (tipo != null) ? tipo : "Normal";
     }
     
     public void mostrarbattelPanel() {

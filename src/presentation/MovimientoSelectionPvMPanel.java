@@ -26,6 +26,7 @@ public class MovimientoSelectionPvMPanel extends JPanel {
     private JButton btnConfirm;
     private JButton btnSiguiente;
     private List<Pokemon> selectedPokemons = new ArrayList<>();
+    private String tipoDeMaquinaSeleccionado = "Normal";
     
     public MovimientoSelectionPvMPanel(PokemonGUI pokemonGUI, List<Pokemon> pokemones) {
         this.pokemonGUI = pokemonGUI;
@@ -125,6 +126,7 @@ public class MovimientoSelectionPvMPanel extends JPanel {
         btnSiguiente.addActionListener(e -> {
             pokemonGUI.setModoJuego("PvM");  
             pokemonGUI.mostrarbattelPanel();  
+            pokemonGUI.setTipoMaquinaSeleccionada(tipoDeMaquinaSeleccionado);
         });
     }
 
