@@ -24,6 +24,7 @@ public class MovimientoSelectionPvMPanel extends JPanel {
     private JButton btnAddMovement;
     private JButton btnRemoveMovement;
     private JButton btnConfirm;
+    private JButton btnSiguiente;
     private List<Pokemon> selectedPokemons = new ArrayList<>();
 
     public MovimientoSelectionPvMPanel(PokemonGUI pokemonGUI, List<Pokemon> pokemones) {
@@ -72,7 +73,9 @@ public class MovimientoSelectionPvMPanel extends JPanel {
 
         JPanel bottomPanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
         btnConfirm = new JButton("Confirmar Movimientos");
+        btnSiguiente = new JButton("Siguiente");
         bottomPanel.add(btnConfirm);
+        bottomPanel.add(btnSiguiente);
         add(bottomPanel, BorderLayout.SOUTH);
 
 
@@ -119,6 +122,10 @@ public class MovimientoSelectionPvMPanel extends JPanel {
                     "Movimientos incompletos",
                     JOptionPane.WARNING_MESSAGE);
             }
+        });
+        
+        btnSiguiente.addActionListener(e -> {
+            pokemonGUI.mostrarbattelPanel();  
         });
     }
 

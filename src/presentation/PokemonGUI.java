@@ -237,8 +237,8 @@ public class PokemonGUI extends JFrame {
     	cardLayout.show(pokemonSelectionPvMPanel, "MAIN POK PVM");
     }
     
-    public void battelPanel() {
-    	cardLayout.show(pokemonSelectionPvMPanel, "MAIN POK PVM");
+    public void mostrarbattelPanel() {
+    	cardLayout.show(battlePanel, "MAIN BATTLE");
     }
     
     
