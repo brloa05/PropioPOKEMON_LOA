@@ -11,6 +11,8 @@ import java.io.IOException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+
 import javax.imageio.ImageIO;
 
 public class BattlePanel extends JPanel {
@@ -83,7 +85,7 @@ public class BattlePanel extends JPanel {
         
         // Cargar imágenes
         try {
-            backgroundImage = ImageIO.read(getClass().getResource("/battle_background.gif"));
+            backgroundImage = ImageIO.read(getClass().getResource("/resource/battle_background.gif"));
             playerPokemonImage = loadPokemonImage(pokemonJugador.getNombre(), true);
             enemyPokemonImage = loadPokemonImage(pokemonOponente.getNombre(), false);
         } catch (IOException e) {
@@ -106,27 +108,35 @@ public class BattlePanel extends JPanel {
         // Panel de batalla (área roja en la imagen)
         JPanel battlePanel = new JPanel(new GridLayout(2, 2, 10, 10));
         battlePanel.setOpaque(false);
+        battlePanel.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
 
         // Panel del enemigo (área superior)
         JPanel enemyInfoPanel = createPokemonInfoPanel(pokemonOponente, false);
         battlePanel.add(enemyInfoPanel);
-        battlePanel.add(new JPanel()); // Espacio en blanco
+        battlePanel.add(new JPanel() {
+            {setOpaque(false);}
+        }); // Espacio en blanco transparente
 
         // Panel del jugador (área inferior)
         JPanel playerInfoPanel = createPokemonInfoPanel(pokemonJugador, true);
+        battlePanel.add(new JPanel() {
+            {setOpaque(false);}
+        }); // Espacio en blanco transparente
         battlePanel.add(playerInfoPanel);
-        battlePanel.add(new JPanel()); // Espacio en blanco
 
         // Panel de acciones (área negra en la imagen)
         JPanel bottomPanel = new JPanel(new BorderLayout());
         bottomPanel.setBackground(Color.BLACK);
+        bottomPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
 
-        // Crear el sistema de cartas para alternar entre menús
+        // Sistema de cartas para alternar entre menús
         actionCardLayout = new CardLayout();
         actionCards = new JPanel(actionCardLayout);
+        actionCards.setOpaque(false);
 
         // Panel de botones principales
-        JPanel mainButtonsPanel = new JPanel(new GridLayout(1, 3));
+        JPanel mainButtonsPanel = new JPanel(new GridLayout(1, 3, 5, 0));
+        mainButtonsPanel.setOpaque(false);
         
         // Botones con sus colores específicos
         JButton btnFight = createStyledButton("LUCHA", new Color(0, 122, 255));
@@ -138,9 +148,17 @@ public class BattlePanel extends JPanel {
         mainButtonsPanel.add(btnPokemon);
 
         // Panel de movimientos
-        JPanel movesPanel = new JPanel(new GridLayout(2, 2, 5, 5));
-        List<Movimiento> movimientos = pokemonGUI.getPokemonMovements().get(pokemonJugador);
+        JPanel movesPanel = new JPanel(new GridLayout(3, 2, 5, 5));
+        movesPanel.setOpaque(false);
         
+        List<Movimiento> movimientos = new ArrayList<>();
+        // Obtener los movimientos del Pokémon si están disponibles
+        Map<Pokemon, List<Movimiento>> pokemonMoves = pokemonGUI.getPokemonMovements();
+        if (pokemonMoves != null && pokemonMoves.containsKey(pokemonJugador)) {
+            movimientos = pokemonMoves.get(pokemonJugador);
+        }
+
+        // Crear los botones de movimiento
         for (int i = 0; i < 4; i++) {
             if (i < movimientos.size()) {
                 moveButtons[i] = createStyledButton(movimientos.get(i).getName(), new Color(70, 130, 180));
@@ -152,9 +170,22 @@ public class BattlePanel extends JPanel {
             movesPanel.add(moveButtons[i]);
         }
 
+        // Botón de retorno en el panel de movimientos
+        JButton btnReturn = createStyledButton("Volver", new Color(200, 0, 0));
+        btnReturn.addActionListener(e -> actionCardLayout.show(actionCards, "MAIN_BUTTONS"));
+        movesPanel.add(btnReturn);
+        movesPanel.add(new JPanel() {
+            {setOpaque(false);}
+        }); // Panel vacío para mantener la simetría
+
         // Agregar los paneles de cartas
         actionCards.add(mainButtonsPanel, "MAIN_BUTTONS");
         actionCards.add(movesPanel, "MOVES");
+
+        // Configurar acciones de los botones principales
+        btnFight.addActionListener(e -> actionCardLayout.show(actionCards, "MOVES"));
+        btnItems.addActionListener(e -> handleItems());
+        btnPokemon.addActionListener(e -> handlePokemonChange());
 
         bottomPanel.add(actionCards, BorderLayout.CENTER);
 
@@ -163,6 +194,9 @@ public class BattlePanel extends JPanel {
         mainPanel.add(bottomPanel, BorderLayout.SOUTH);
 
         add(mainPanel);
+
+        // Asegurar que el panel principal ocupe todo el espacio disponible
+        mainPanel.setPreferredSize(new Dimension(800, 600));
     }
 
     private JButton createStyledButton(String text, Color backgroundColor) {
@@ -220,7 +254,8 @@ public class BattlePanel extends JPanel {
         imagePanel.setOpaque(false);
         
         // Cargar y escalar la imagen del Pokémon
-        ImageIcon pokemonIcon = new ImageIcon(isPlayer ? playerPokemonImage : enemyPokemonImage);
+        BufferedImage pokemonImage = isPlayer ? playerPokemonImage : enemyPokemonImage;
+        ImageIcon pokemonIcon = new ImageIcon(pokemonImage.getScaledInstance(200, 200, Image.SCALE_SMOOTH));
         JLabel imageLabel = new JLabel(pokemonIcon);
         imagePanel.add(imageLabel, BorderLayout.CENTER);
 
@@ -238,13 +273,51 @@ public class BattlePanel extends JPanel {
     }
 
     private void prepareActions() {
+        // Acciones para los botones principales
+        for (Component comp : ((JPanel)actionCards.getComponent(0)).getComponents()) {
+            if (comp instanceof JButton) {
+                JButton button = (JButton)comp;
+                switch (button.getText()) {
+                    case "LUCHA":
+                        button.addActionListener(e -> actionCardLayout.show(actionCards, "MOVES"));
+                        break;
+                    case "ITEMS":
+                        button.addActionListener(e -> handleItems());
+                        break;
+                    case "POKEMON":
+                        button.addActionListener(e -> handlePokemonChange());
+                        break;
+                }
+            }
+        }
+
+        // Acción para el botón de retorno en el panel de movimientos
+        for (Component comp : ((JPanel)actionCards.getComponent(1)).getComponents()) {
+            if (comp instanceof JButton && ((JButton)comp).getText().equals("Volver")) {
+                ((JButton)comp).addActionListener(e -> actionCardLayout.show(actionCards, "MAIN_BUTTONS"));
+            }
+        }
+
         // Acciones para los botones de movimiento
         for (int i = 0; i < moveButtons.length; i++) {
             if (moveButtons[i].isEnabled()) {
                 final int moveIndex = i;
-                moveButtons[i].addActionListener(e -> executeMove(moveIndex));
+                moveButtons[i].addActionListener(e -> {
+                    executeMove(moveIndex);
+                    actionCardLayout.show(actionCards, "MAIN_BUTTONS");
+                });
             }
         }
+    }
+
+    private void handleItems() {
+        // Implementar manejo de items
+        JOptionPane.showMessageDialog(this, "Función de items en desarrollo");
+    }
+
+    private void handlePokemonChange() {
+        // Implementar cambio de Pokémon
+        JOptionPane.showMessageDialog(this, "Función de cambio de Pokémon en desarrollo");
     }
 
     private void executeMove(int moveIndex) {
@@ -349,7 +422,10 @@ public class BattlePanel extends JPanel {
         BufferedImage img = new BufferedImage(120, 120, BufferedImage.TYPE_INT_ARGB);
         Graphics2D g2d = img.createGraphics();
         g2d.setColor(Color.GRAY);
-		return img;
-        
+        g2d.fillRect(0, 0, 120, 120);
+        g2d.setColor(Color.BLACK);
+        g2d.drawString("Pokémon", 30, 60);
+        g2d.dispose();
+        return img;
     }
 }

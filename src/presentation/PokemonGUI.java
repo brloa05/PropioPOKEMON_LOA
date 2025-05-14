@@ -69,6 +69,7 @@ public class PokemonGUI extends JFrame {
     	setTitle("POOKemon");
     	prepareEntrenador();
     	iniciarNuevaAplicacion();
+    	pokemonMovements = new HashMap<>();
         prepareElementosPantallaPrincipal();
         prepareAcciones();
         mostrarPantallaIntro();
@@ -490,20 +491,22 @@ public class PokemonGUI extends JFrame {
     }
     
     private void comenzarBatalla() {
-
         Entrenador jugador = new EntrenadorPlayer("Jugador", "Player");
         Entrenador oponente = new EntrenadorMachine("Oponente", "Machine");
         
-        // Asignar Pokémon a los entrenadores
+        // Asignar Pokémon y sus movimientos
         for (Pokemon pokemon : selectedPokemons) {
             jugador.getPokemones().add(pokemon);
+            // Asegurarse de que cada Pokémon tenga al menos un movimiento
+            if (!pokemonMovements.containsKey(pokemon)) {
+                pokemonMovements.put(pokemon, new ArrayList<>());
+            }
         }
 
-        
         // Crear y mostrar el panel de batalla
-       battlePanel = new BattlePanel(this, jugador, oponente);
-       cardPanel.add(battlePanel, "BATTLE");
-       cardLayout.show(cardPanel, "BATTLE");
+        battlePanel = new BattlePanel(this, jugador, oponente);
+        cardPanel.add(battlePanel, "BATTLE");
+        cardLayout.show(cardPanel, "BATTLE");
     }
     
     public void iniciarBatalla(Entrenador jugador, Entrenador oponente) {
