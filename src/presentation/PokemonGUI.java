@@ -74,7 +74,7 @@ public class PokemonGUI extends JFrame {
     private Map<Pokemon, List<Movimiento>> pokemonMovements;
     
     private Map<String, List<Pokemon>> playerPokemons;
-    private Map<String, Map<Pokemon, List<Movimiento>>> playerMovements;
+    public Map<String, Map<Pokemon, List<Movimiento>>> playerMovements;
     private String currentPlayer;
     
     private String tipoMaquinaSeleccionada = "Normal";
@@ -679,6 +679,8 @@ public void comienzoAgregarItems1(Map<String,Integer> itemsSeleccionados, String
         
         // Crear mapas para la máquina
         Map<Pokemon.Tipo, List<Pokemon>> pokemonesPorTipo = new HashMap<>();
+        
+     // En la clase PokemonGUI
         
         // Agrupar pokémon de un tipo
         for (PokemonUnTipo.PokemonBase base : PokemonUnTipo.PokemonBase.values()) {

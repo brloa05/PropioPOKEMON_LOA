@@ -89,7 +89,7 @@ public class MovimientoSelectionPvMPanel extends JPanel {
 
         JPanel bottomPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 0));
         
-        tnConfirmarMovimientos = new JButton("Confirmar Movimientos");
+        btnConfirmarMovimientos = new JButton("Confirmar Movimientos");
         btnSiguiente = new JButton("Siguiente");
         
         // Configuración inicial de los botones
