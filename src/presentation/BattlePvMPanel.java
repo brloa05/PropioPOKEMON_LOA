@@ -664,4 +664,18 @@ public class BattlePvMPanel extends JPanel {
         revalidate();
         repaint();
     }
+    
+    private void asegurarMainPanelInicializado() {
+        JPanel mainPanel = null;
+		if (mainPanel == null) {
+            mainPanel = new javax.swing.JPanel();
+            mainPanel.setLayout(new java.awt.BorderLayout()); // O el layout que uses normalmente
+        }
+    }
+    
+    public void prepararElementosSeguro() {
+        asegurarMainPanelInicializado();
+        prepareElements(); // Llama al método ya existente
+    }
+    
 }
