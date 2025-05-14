@@ -291,31 +291,29 @@ public class PokemonAplication {
 		
 	}
 	
-	public ArrayList<Item> escojerItems(ArrayList<String> itemsEscogidos ) {
-		ArrayList<Item> itemEscogidos =  new ArrayList<>();
-		int numeroPosiones = 0;
-		int numeroSuperPosiones = 0;
-		int numeroHyperPosiones = 0;
-		int numeroDeRevivir = 0;
-		
-		for (String item: itemsEscogidos) {
-			if (item.equals("Potion") && numeroPosiones < 2) {
-				itemEscogidos.add(new Potion("potion" + numeroPosiones, 20));
-				numeroPosiones += 1;
-			} else if (item.equals("HyperPotion") && numeroHyperPosiones < 2) {
-				itemEscogidos.add(new HyperPotion("HyperPotion" + numeroHyperPosiones, 50));
-				numeroHyperPosiones += 1;
-			} else if (item.equals("SuperPotion") && numeroSuperPosiones < 2) {
-				itemEscogidos.add(new SuperPotion("SuperPotion" + numeroSuperPosiones,200));
-				numeroSuperPosiones += 1;
-			} else if (item.equals("Revive") && numeroDeRevivir < 1) {
-				itemEscogidos.add(new Revive("Revive" + numeroDeRevivir, 400));
-				 numeroDeRevivir += 1;
-			} else {
-				//se lanza una PokemonException
-			}
-		}
-		return itemEscogidos;		
+	public ArrayList<Item> escojerItems(ArrayList<String> itemsEscogidos) {
+	    ArrayList<Item> itemEscogidos = new ArrayList<>();
+	    int numeroPosiones = 0;
+	    int numeroSuperPosiones = 0;
+	    int numeroHyperPosiones = 0;
+	    int numeroDeRevivir = 0;
+	    
+	    for (String item: itemsEscogidos) {
+	        if (item.equals("Potion") && numeroPosiones < 2) {
+	            itemEscogidos.add(new Potion("potion" + numeroPosiones, 20));
+	            numeroPosiones += 1;
+	        } else if (item.equals("HyperPotion") && numeroHyperPosiones < 2) {
+	            itemEscogidos.add(new HyperPotion("HyperPotion" + numeroHyperPosiones, 50));
+	            numeroHyperPosiones += 1;
+	        } else if (item.equals("SuperPotion") && numeroSuperPosiones < 2) {
+	            itemEscogidos.add(new SuperPotion("SuperPotion" + numeroSuperPosiones, 200));
+	            numeroSuperPosiones += 1;
+	        } else if (item.equals("Revive") && numeroDeRevivir < 1) {
+	            itemEscogidos.add(new Revive("Revive" + numeroDeRevivir, 400));
+	            numeroDeRevivir += 1;
+	        }
+	    }
+	    return itemEscogidos;
 	}
 	
 	
@@ -474,6 +472,8 @@ public class PokemonAplication {
 	public String getSelectionStatus() {
 	    return "Pokémon seleccionados: " + selectedPokemons.size() + "/" + MAX_POKEMONS;
 	}
+	
+	
 	
 	//prueba agregar
 	public static void main(String[] args) {

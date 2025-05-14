@@ -43,20 +43,16 @@ public class BattlePvMPanel extends JPanel {
         this.jugador = jugador2;
         this.maquina = maquina;
 
-        if (jugador2 != null && !jugador2.getPokemones().isEmpty()) {
-            this.pokemonJugador = jugador2.getPokemones().get(0);
-        } else {
-            throw new IllegalStateException("El jugador debe tener al menos un Pokémon");
-        }
-        
-        if (maquina != null && !maquina.getPokemones().isEmpty()) {
-            this.pokemonMaquina = maquina.getPokemones().get(0);
-        } else {
-            throw new IllegalStateException("La máquina debe tener al menos un Pokémon");
-        }
-        
+        // Quitar la validación prematura de Pokémon
         prepareElements();
         prepareActions();
+    }
+
+    // En su lugar, agregar un método para inicializar los Pokémon cuando sea el momento
+    public void initializePokemon(Pokemon pokemonJugador, Pokemon pokemonMaquina) {
+        this.pokemonJugador = pokemonJugador;
+        this.pokemonMaquina = pokemonMaquina;
+        updatePokemonDisplay(); // Actualizar la interfaz con los Pokémon seleccionados
     }
     
     private static Map<String, String> createPokemonImageMap() {
@@ -399,15 +395,23 @@ public class BattlePvMPanel extends JPanel {
     }
 
     private void handleItems() {
-        List<Item> items = jugador.getItems();
-        if (items.isEmpty()) {
-            JOptionPane.showMessageDialog(this, "No tienes objetos disponibles", "Objetos", JOptionPane.INFORMATION_MESSAGE);
+    	List<Item> items = jugador.getItems();
+        if (items == null || items.isEmpty()) {
+            JOptionPane.showMessageDialog(this, 
+                "No tienes objetos disponibles", 
+                "Objetos", 
+                JOptionPane.INFORMATION_MESSAGE);
             return;
+        }
+        
+        System.out.println("Items disponibles: " + items.size());
+        for (Item item : items) {
+            System.out.println(" - " + item.getId());
         }
 
         String[] itemIds = items.stream()
-            .map(Item::getId)
-            .toArray(String[]::new);
+                .map(Item::getId)
+                .toArray(String[]::new);
 
         String selectedItemId = (String) JOptionPane.showInputDialog(
             this,
@@ -522,67 +526,82 @@ public class BattlePvMPanel extends JPanel {
     }
 
     private void realizarTurnoMaquina() {
-        // Primero verificamos si la máquina debe usar un item
-        if (pokemonMaquina.getSalud() < pokemonMaquina.getSaludMaxima() * 0.3) {
-            // Obtener items de la máquina
-            List<Item> itemsMaquina = maquina.getItems();
-            
-            // Buscar un item de curación (que no sea Revive ya que el Pokémon no está debilitado)
-            Item itemParaUsar = itemsMaquina.stream()
-                .filter(item -> !item.esRevive())
-                .findFirst()
-                .orElse(null);
-            
-            if (itemParaUsar != null) {
-                // Mostrar mensaje de que la máquina está usando un item
-                JOptionPane.showMessageDialog(this, 
-                    "La máquina usa " + itemParaUsar.getId() + " en " + pokemonMaquina.getNombre(),
-                    "Uso de Item",
-                    JOptionPane.INFORMATION_MESSAGE);
-                
-                // Aplicar el efecto del item
-                String resultado = itemParaUsar.efectoItem(pokemonMaquina);
-                
-                // Si el item tuvo efecto, actualizamos la interfaz
-                if (!resultado.equals("No efectuo")) {
-                    itemsMaquina.remove(itemParaUsar); // Remover el item usado
-                    updateHealthBars();
-                    JOptionPane.showMessageDialog(this,
-                        pokemonMaquina.getNombre() + " ha recuperado salud!",
-                        "Efecto del Item",
-                        JOptionPane.INFORMATION_MESSAGE);
-                    return; // La máquina usó un item, termina su turno
-                }
-            }
-        }
-
-        // Si no usó un item o el item no tuvo efecto, realiza un ataque
-        Map<Pokemon, List<Movimiento>> pokemonMoves = pokemonGUI.getPokemonMovements();
-        List<Movimiento> movimientosDisponibles = pokemonMoves.get(pokemonMaquina);
+    // Primero verificamos si debemos usar un item (cuando la vida está baja)
+    if (pokemonMaquina.getSalud() < pokemonMaquina.getSaludMaxima() * 0.3) {
+        // Obtener los items que la máquina tiene disponibles
+        List<Item> itemsMaquina = maquina.getItems();
         
-        if (movimientosDisponibles != null && !movimientosDisponibles.isEmpty()) {
-            // Elegir un movimiento aleatorio
-            int index = (int)(Math.random() * movimientosDisponibles.size());
-            Movimiento movimiento = movimientosDisponibles.get(index);
-            
-            // Mostrar mensaje del movimiento usado
-            JOptionPane.showMessageDialog(this,
-                pokemonMaquina.getNombre() + " usa " + movimiento.getName() + "!",
-                "Ataque de la Máquina",
+        // Intentar encontrar una poción (cualquier item que no sea Revive)
+        Item itemParaUsar = itemsMaquina.stream()
+            .filter(item -> !item.esRevive())
+            .findFirst()
+            .orElse(null);
+
+        if (itemParaUsar != null) {
+            // Mostrar mensaje sobre el uso del item
+            JOptionPane.showMessageDialog(this, 
+                "La máquina usa " + itemParaUsar.getId() + " en " + pokemonMaquina.getNombre(),
+                "Uso de Item",
                 JOptionPane.INFORMATION_MESSAGE);
             
-            // Realizar el ataque
-            int damage = calculaDaño(movimiento, pokemonMaquina, pokemonJugador);
-            pokemonJugador.recibirDanio(damage);
-            
-            updateHealthBars();
-            
-            // Verificar si el Pokémon del jugador fue debilitado
-            if (pokemonJugador.estaDebilitado()) {
-                handlePokemonFainted(pokemonJugador);
+            // Aplicar el efecto del item y actualizar
+            String resultado = itemParaUsar.efectoItem(pokemonMaquina);
+            if (!resultado.equals("No efectuo")) {
+                itemsMaquina.remove(itemParaUsar);
+                updateHealthBars();
+                return; // Terminar el turno después de usar el item
             }
         }
     }
+    // Si el Pokémon está debilitado y tenemos un Revive, usarlo
+    else if (pokemonMaquina.estaDebilitado()) {
+        List<Item> itemsMaquina = maquina.getItems();
+        Item revive = itemsMaquina.stream()
+            .filter(Item::esRevive)
+            .findFirst()
+            .orElse(null);
+
+        if (revive != null) {
+            JOptionPane.showMessageDialog(this, 
+                "La máquina usa " + revive.getId() + " en " + pokemonMaquina.getNombre(),
+                "Uso de Revive",
+                JOptionPane.INFORMATION_MESSAGE);
+            
+            String resultado = revive.efectoItem(pokemonMaquina);
+            if (!resultado.equals("No efectuo")) {
+                itemsMaquina.remove(revive);
+                updateHealthBars();
+                return;
+            }
+        }
+    }
+
+    // Si no usamos item o el Pokémon no necesita curación, realizar ataque
+    Map<Pokemon, List<Movimiento>> pokemonMoves = pokemonGUI.getPokemonMovements();
+    List<Movimiento> movimientosDisponibles = pokemonMoves.get(pokemonMaquina);
+    
+    if (movimientosDisponibles != null && !movimientosDisponibles.isEmpty()) {
+        // Elegir un movimiento aleatorio
+        int index = (int)(Math.random() * movimientosDisponibles.size());
+        Movimiento movimiento = movimientosDisponibles.get(index);
+        
+        // Mostrar el movimiento usado
+        JOptionPane.showMessageDialog(this,
+            pokemonMaquina.getNombre() + " usa " + movimiento.getName() + "!",
+            "Ataque de la Máquina",
+            JOptionPane.INFORMATION_MESSAGE);
+        
+        // Realizar el ataque
+        int damage = calculaDaño(movimiento, pokemonMaquina, pokemonJugador);
+        pokemonJugador.recibirDanio(damage);
+        
+        updateHealthBars();
+        
+        if (pokemonJugador.estaDebilitado()) {
+            handlePokemonFainted(pokemonJugador);
+        }
+    }
+}
     
 
     private void handlePokemonFainted(Pokemon pokemon) {
