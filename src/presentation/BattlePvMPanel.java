@@ -28,7 +28,7 @@ public class BattlePvMPanel extends JPanel {
     private BufferedImage playerPokemonImage;
     private BufferedImage enemyPokemonImage;
     private JPanel actionPanel;
-    private JButton[] moveButtons = new JButton[4];
+    private JButton[] moveButtons;
     private JProgressBar playerHealthBar;
     private JProgressBar enemyHealthBar;
     private JLabel playerNameLabel;
@@ -43,60 +43,13 @@ public class BattlePvMPanel extends JPanel {
  // En el constructor de BattlePvMPanel
     public BattlePvMPanel(PokemonGUI pokemonGUI, EntrenadorPlayer jugador, EntrenadorMachine maquina) {
         this.pokemonGUI = pokemonGUI;
+        this.pokemonJugador = pokemonJugador;
+        this.pokemonMaquina = pokemonMaquina;
+        System.out.println("Pokemon Jugador: " + (pokemonJugador != null ? pokemonJugador.getNombre() : "null"));
+        System.out.println("Pokemon Máquina: " + (pokemonMaquina != null ? pokemonMaquina.getNombre() : "null"));
         
-        if (jugador == null || maquina == null) {
-            cargarDatosDePrueba();
-        } else {
-            this.jugador = jugador;
-            this.maquina = maquina;
-            
-            // Verificar que el jugador tenga pokémon asignados
-            if (jugador.getPokemones() == null || jugador.getPokemones().isEmpty()) {
-                throw new IllegalStateException("El jugador no tiene pokémon asignados");
-            }
-            
-            // Inicializar la máquina si no tiene pokémon asignados
-            if (maquina.getPokemones() == null || maquina.getPokemones().isEmpty()) {
-                // Crear el mapa de pokémon por tipo
-                Map<Pokemon.Tipo, List<Pokemon>> pokemonesPorTipo = new HashMap<>();
-                
-                // Inicializar las listas para cada tipo
-                for (Pokemon.Tipo tipo : Pokemon.Tipo.values()) {
-                    pokemonesPorTipo.put(tipo, new ArrayList<>());
-                }
-                
-                // Agregar pokémon de un tipo
-                for (PokemonUnTipo.PokemonBase base : PokemonUnTipo.PokemonBase.values()) {
-                    Pokemon pokemon = new PokemonUnTipo(base.name(), base.stats[0], new ArrayList<>());
-                    pokemonesPorTipo.get(base.tipo).add(pokemon);
-                }
-                
-                // Agregar pokémon de dos tipos
-                for (PokemonDosTipos.PokemonBase base : PokemonDosTipos.PokemonBase.values()) {
-                    Pokemon pokemon = new PokemonDosTipos(base.name(), base.stats[0], new ArrayList<>());
-                    pokemonesPorTipo.get(base.tipo1).add(pokemon);
-                }
-                
-                // Dejar que la máquina escoja sus pokémon
-                maquina.escogerPokemonesTipo(pokemonesPorTipo);
-                
-                // Agregar movimientos a cada pokémon de la máquina
-                Map<Pokemon.Tipo, List<Movimiento>> movimientosPorTipo = new HashMap<>();
-                for (Pokemon.Tipo tipo : Pokemon.Tipo.values()) {
-                    movimientosPorTipo.put(tipo, Movimiento.getMovimientosPorTipo(tipo));
-                }
-                
-                for (Pokemon pokemon : maquina.getPokemones()) {
-                    maquina.agregarMovimientos(pokemon, movimientosPorTipo, new ArrayList<>());
-                }
-            }
-        }
-
-        // Inicializar los Pokémon activos después de asegurarnos que existen
-        this.pokemonJugador = this.jugador.getPokemones().get(0);
-        this.pokemonMaquina = this.maquina.getPokemones().get(0);
-
         prepareElements();
+        
         prepareActions();
     }
 
@@ -175,6 +128,18 @@ public class BattlePvMPanel extends JPanel {
     }
 
     private void prepareElements() {
+    	
+    	moveButtons = new JButton[4];
+        for (int i = 0; i < moveButtons.length; i++) {
+            moveButtons[i] = new JButton();
+            moveButtons[i].setPreferredSize(new Dimension(200, 50));
+            moveButtons[i].setFont(new Font("Arial", Font.PLAIN, 14));
+            moveButtons[i].setOpaque(true);
+            moveButtons[i].setBackground(new Color(51, 51, 51));
+            moveButtons[i].setForeground(Color.WHITE);
+            moveButtons[i].setBorder(BorderFactory.createLineBorder(Color.GRAY));
+        }
+    	
         setLayout(new BorderLayout());
         
         // Cargar imágenes

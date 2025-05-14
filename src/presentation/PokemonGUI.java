@@ -607,7 +607,11 @@ public class PokemonGUI extends JFrame {
     }
 
     public Map<Pokemon, List<Movimiento>> getPokemonMovements() {
-        return playerMovements.get(currentPlayer);
+        if (pokemonMovements == null) {
+            System.out.println("Warning: pokemonMovements es null");
+            return new HashMap<>();
+        }
+        return pokemonMovements;
     }
     
     private void comenzarBatalla() {
