@@ -3,6 +3,7 @@ package presentation;
 import domain.Movimiento;
 import domain.Pokemon;
 import domain.Pokemon.Tipo;
+import presentation.PokemonGUI.ModoJuego;
 
 import javax.swing.*;
 import java.awt.*;
@@ -123,11 +124,17 @@ public class MovimientoSelectionPanelTwo extends JPanel {
         });
         
         btnSiguiente.addActionListener(e -> {
-            pokemonGUI.mostrarbattelPanel();  
+            pokemonGUI.mostrarBattlePanel();
+            setModoJuego(ModoJuego.PVP);
         });
     }
 
-    private void loadPokemonMovements(Pokemon pokemon) {
+    private void setModoJuego(ModoJuego pvp) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	private void loadPokemonMovements(Pokemon pokemon) {
     	
     	if (pokemon == null) {
             availableModel.clear();

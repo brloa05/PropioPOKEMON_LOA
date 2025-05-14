@@ -67,7 +67,6 @@ public class PokemonGUI extends JFrame {
     private static final String RUTA_INTRO_GIF = "/introPokemon.gif";
     
     private PokemonAplication pokemonAplication;
-    private String modoJuego;
     
     private List<Pokemon> selectedPokemons = new ArrayList<>();
     private Map<Pokemon, List<Movimiento>> pokemonMovements;
@@ -77,6 +76,8 @@ public class PokemonGUI extends JFrame {
     private String currentPlayer;
     
     private String tipoMaquinaSeleccionada = "Normal";
+    
+    private ModoJuego modoJuego = ModoJuego.PVM;
     
     
     
@@ -266,11 +267,12 @@ public class PokemonGUI extends JFrame {
         this.tipoMaquinaSeleccionada = (tipo != null) ? tipo : "Normal";
     }
     
-    public void mostrarbattelPanel() {
+ // Método para mostrar batalla PvM
+    public void mostrarBattlePvMPanel() {
         try {
             // Crear la máquina según el tipo seleccionado
             if (maquina == null) {
-                switch(tipoMaquinaSeleccionada) { // Asegúrate de tener esta variable definida en la clase
+                switch(tipoMaquinaSeleccionada) {
                     case "ExpertTrainer":
                         maquina = new ExpertTrainer("Machine", "Machine");
                         break;
@@ -298,27 +300,9 @@ public class PokemonGUI extends JFrame {
                 cargarPokemonMaquina();
             }
 
-            // Crear y mostrar el panel de batalla según el modo
-            if (modoJuego == ModoJuego.PVM) { // Asegúrate de tener un enum ModoJuego en la clase
-                BattlePvMPanel battlePvMPanel = new BattlePvMPanel(this, jugador, maquina);
-                cardPanel.add(battlePvMPanel, "BATTLE");
-                cardLayout.show(cardPanel, "BATTLE");
-            } else if (modoJuego == ModoJuego.PVP) {
-                // Modo PvP - usar el BattlePanel original
-                Entrenador jugador1 = new EntrenadorPlayer(Entrenador1, "Player");
-                Entrenador jugador2 = new EntrenadorPlayer(Entrenador2, "Player");
-                
-                if (playerPokemons.containsKey(Entrenador1)) {
-                    jugador1.setPokemones(playerPokemons.get(Entrenador1));
-                }
-                if (playerPokemons.containsKey(Entrenador2)) {
-                    jugador2.setPokemones(playerPokemons.get(Entrenador2));
-                }
-                
-                battlePanel = new BattlePanel(this, jugador1, jugador2);
-                cardPanel.add(battlePanel, "BATTLE");
-                cardLayout.show(cardPanel, "BATTLE");
-            }
+            BattlePvMPanel battlePvMPanel = new BattlePvMPanel(this, jugador, maquina);
+            cardPanel.add(battlePvMPanel, "BATTLE");
+            cardLayout.show(cardPanel, "BATTLE");
 
         } catch (IllegalStateException e) {
             JOptionPane.showMessageDialog(
@@ -330,6 +314,54 @@ public class PokemonGUI extends JFrame {
             volverAlMenuPrincipal();
         }
     }
+
+    // Método para mostrar batalla PvP
+    public void mostrarBattlePanel() {
+        try {
+            // Modo PvP - usar el BattlePanel original
+            Entrenador jugador1 = new EntrenadorPlayer(Entrenador1, "Player");
+            Entrenador jugador2 = new EntrenadorPlayer(Entrenador2, "Player");
+            
+            if (playerPokemons.containsKey(Entrenador1)) {
+                jugador1.setPokemones(playerPokemons.get(Entrenador1));
+            }
+            if (playerPokemons.containsKey(Entrenador2)) {
+                jugador2.setPokemones(playerPokemons.get(Entrenador2));
+            }
+            
+            // Verificar que ambos jugadores tengan Pokémon
+            if (jugador1.getPokemones() == null || jugador1.getPokemones().isEmpty()) {
+                throw new IllegalStateException("El jugador 1 debe tener al menos un Pokémon para iniciar la batalla");
+            }
+            if (jugador2.getPokemones() == null || jugador2.getPokemones().isEmpty()) {
+                throw new IllegalStateException("El jugador 2 debe tener al menos un Pokémon para iniciar la batalla");
+            }
+            
+            battlePanel = new BattlePanel(this, jugador1, jugador2);
+            cardPanel.add(battlePanel, "BATTLE");
+            cardLayout.show(cardPanel, "BATTLE");
+
+        } catch (IllegalStateException e) {
+            JOptionPane.showMessageDialog(
+                this,
+                "Error al iniciar la batalla: " + e.getMessage(),
+                "Error",
+                JOptionPane.ERROR_MESSAGE
+            );
+            volverAlMenuPrincipal();
+        }
+    }
+
+
+
+// Añade los métodos getter y setter para modoJuego
+public ModoJuego getModoJuego() {
+    return modoJuego;
+}
+
+public void setModoJuego(ModoJuego modo) {
+    this.modoJuego = modo;
+}
 
     
     
@@ -805,10 +837,6 @@ public class PokemonGUI extends JFrame {
 
     public void setMovimientosSeleccionadosPlayer(List<String> seleccionados) {
         pokemonAplication.setMovimientosSeleccionadosPlayer(seleccionados);
-    }
-    
-    public void setModoJuego(String modo) {
-        this.modoJuego = modo;
     }
     
     private void cargarPokemonMaquina() {

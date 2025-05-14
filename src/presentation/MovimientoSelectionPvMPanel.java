@@ -3,6 +3,7 @@ package presentation;
 import domain.Movimiento;
 import domain.Pokemon;
 import domain.Pokemon.Tipo;
+import presentation.PokemonGUI.ModoJuego;
 
 import javax.swing.*;
 import java.awt.*;
@@ -124,13 +125,18 @@ public class MovimientoSelectionPvMPanel extends JPanel {
         });
         
         btnSiguiente.addActionListener(e -> {
-            pokemonGUI.setModoJuego("PvM");  
-            pokemonGUI.mostrarbattelPanel();  
+        	setModoJuego(ModoJuego.PVM); 
+            pokemonGUI.mostrarBattlePvMPanel();  
             pokemonGUI.setTipoMaquinaSeleccionada(tipoDeMaquinaSeleccionado);
         });
     }
 
-    private void loadPokemonMovements(Pokemon pokemon) {
+    private void setModoJuego(ModoJuego pvm) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	private void loadPokemonMovements(Pokemon pokemon) {
 
     	if (pokemon == null) {
             availableModel.clear();
