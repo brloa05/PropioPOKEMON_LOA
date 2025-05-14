@@ -226,19 +226,19 @@ public class PokemonGUI extends JFrame {
     }
     
     public void mostrarPokemonSelectionPanel() {
-    	cardLayout.show(pokemonSelectionPanel, "MAIN POK PVP");
+    	cardLayout.show(cardPanel, "MAIN POK PVP");
     }
     
     public void mostrarPokemonSelectionPanelTwo() {
-    	cardLayout.show(pokemonSelectionPanelTwo, "MAIN POK TWO");
+    	cardLayout.show(cardPanel, "MAIN POK TWO");
     }
     
     public void mostrarPokemonSelectionPvMPanel() {
-    	cardLayout.show(pokemonSelectionPvMPanel, "MAIN POK PVM");
+    	cardLayout.show(cardPanel, "MAIN POK PVM");
     }
     
     public void mostrarbattelPanel() {
-    	cardLayout.show(battlePanel, "MAIN BATTLE");
+    	cardLayout.show(cardPanel, "MAIN BATTLE");
     }
     
     

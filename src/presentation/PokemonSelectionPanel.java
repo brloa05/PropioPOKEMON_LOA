@@ -168,6 +168,7 @@ public class PokemonSelectionPanel extends JPanel {
             }
             pokemonGUI.setSelectedPokemons(new ArrayList<>(selectedPokemons));
             pokemonGUI.mostrarSeleccionMovimientos(selectedPokemons);
+            pokemonGUI.mostrarPokemonSelectionPanel();
         });
 
         btnConfirm.addActionListener(e -> {
@@ -182,7 +183,6 @@ public class PokemonSelectionPanel extends JPanel {
                 pokemonGUI.setSelectedPokemons(new ArrayList<>(selectedPokemons));
                 pokemonGUI.mostrarSeleccionMovimientos(new ArrayList<>(selectedPokemons));
             }
-            pokemonGUI.mostrarPokemonSelectionPanel();
         });
     }
 

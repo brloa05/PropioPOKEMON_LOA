@@ -1,145 +1,374 @@
 package presentation;
 
+import domain.Especial;
+import domain.Fisico;
+import domain.Movimiento;
+import domain.Pokemon;
+import domain.Pokemon.Tipo;
+import domain.PokemonAplication;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
 import java.awt.image.BufferedImage;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashMap;
+import java.io.*;
+import java.net.URL;
+import java.util.*;
 import java.util.List;
-import java.util.Map;
 import javax.imageio.ImageIO;
 
 public class PokemonSelectionPanelTwo extends JPanel {
     private PokemonGUI pokemonGUI;
-    private Map<String, JCheckBox> pokemonCheckboxes;
-    private JButton btnRegresar, btnSiguiente;
-    private BufferedImage imagenFondo;
-    private JLabel contadorLabel;
-    private int pokemonesSeleccionados;
-    private final int MAX_POKEMONES = 6;
+    private JLabel lblPokemonImage;
+    private JTextArea txtStats;
+    private JComboBox<String> cbTypes;
+    private JComboBox<String> cbPokemons;
+    private JButton btnAddPokemon;
+    private JButton btnRemovePokemon;
+    private JButton btnConfirm;
+    private JButton btnNext;
+    private JButton btnBack;
+    private JList<String> selectedPokemonsList;
+    private DefaultListModel<String> listModel;
+    
+    private Map<String, Pokemon> pokemonMap = new HashMap<>();
+    private Map<Tipo, Integer> typeCount = new EnumMap<>(Tipo.class);
+    private List<Pokemon> selectedPokemons = new ArrayList<>();
+    
+    private static final int MAX_POKEMONS = 6;
+    private static final int MAX_SAME_TYPE = 2;
+
+    private static final Map<String, String> POKEMON_IMAGE_MAP = createPokemonImageMap();
+    
+    private static Map<String, String> createPokemonImageMap() {
+        Map<String, String> map = new HashMap<>();
+        // Pokémon de un tipo
+        map.put("BLASTOISE", "/blastoise-Objetivo.gif");
+        map.put("SNORLAX", "/snorlax-Objetivo.gif");
+        map.put("DONPHAN", "/donphan-Objetivo.gif");
+        map.put("MACHAMP", "/machamp-Objetivo.gif");
+        map.put("RAICHU", "/raichu-Objetivo.gif");
+        
+        // Pokémon de dos tipos
+        map.put("CHARIZARD", "/charizard-Objetivo.gif");
+        map.put("VENUSAUR", "/venusaur-Objetivo.gif");
+        map.put("GENGAR", "/gengar-Objetivo.gif");
+        map.put("DRAGONITE", "/dragonite-Objetivo.gif");
+        map.put("TOGETIC", "/togetic-Objetivo.gif");
+        map.put("TYRANITAR", "/tyranitar-Objetivo.gif");
+        map.put("GARDEVOIR", "/gardevoir-Objetivo.gif");
+        map.put("METAGROSS", "/metagross-Objetivo.gif");
+        map.put("DELIBIRD", "/delibird-Objetivo.gif");
+        
+        return map;
+    }
 
     public PokemonSelectionPanelTwo(PokemonGUI pokemonGUI) {
         this.pokemonGUI = pokemonGUI;
-        this.pokemonCheckboxes = new HashMap<>();
-        this.pokemonesSeleccionados = 0;
-        prepareElementos();
-        prepareAcciones();
+        prepareElements();
+        prepareActions();
+        showPokemonDetails(null);
+    }
+    
+    private void prepareElements() {
+        setLayout(new BorderLayout(10, 10));
+        setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+
+        JPanel selectionPanel = new JPanel(new GridLayout(1, 2, 10, 10));
+
+        JPanel leftPanel = new JPanel(new GridLayout(4, 1, 5, 5));
+        
+        cbTypes = new JComboBox<>();
+        cbPokemons = new JComboBox<>();
+        btnAddPokemon = new JButton("Añadir Pokémon");
+        btnRemovePokemon = new JButton("Quitar Seleccionado");
+        
+        leftPanel.add(new JLabel("Tipo de Pokémon:"));
+        leftPanel.add(cbTypes);
+        leftPanel.add(new JLabel("Pokémon disponible:"));
+        leftPanel.add(cbPokemons);
+
+        JPanel rightPanel = new JPanel(new GridLayout(2, 1, 5, 5));
+        rightPanel.add(btnAddPokemon);
+        rightPanel.add(btnRemovePokemon);
+
+        selectionPanel.add(leftPanel);
+        selectionPanel.add(rightPanel);
+
+        JPanel centerPanel = new JPanel(new BorderLayout(10, 10));
+        
+        lblPokemonImage = new JLabel("Selecciona un Pokémon", SwingConstants.CENTER);
+        lblPokemonImage.setPreferredSize(new Dimension(250, 250));
+        lblPokemonImage.setBorder(BorderFactory.createLineBorder(Color.GRAY));
+        
+        txtStats = new JTextArea("Selecciona un Pokémon para ver sus estadísticas");
+        txtStats.setEditable(false);
+        txtStats.setFont(new Font("Monospaced", Font.PLAIN, 12));
+        txtStats.setBorder(BorderFactory.createTitledBorder("Estadísticas"));
+        
+        centerPanel.add(lblPokemonImage, BorderLayout.CENTER);
+        centerPanel.add(new JScrollPane(txtStats), BorderLayout.SOUTH);
+
+        JPanel bottomPanel = new JPanel(new BorderLayout(10, 10));
+        
+        listModel = new DefaultListModel<>();
+        selectedPokemonsList = new JList<>(listModel);
+        selectedPokemonsList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+        
+        // Panel para los botones
+        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 0));
+        
+        btnBack = new JButton("Regresar");
+        btnConfirm = new JButton("Confirmar selección (" + selectedPokemons.size() + "/" + MAX_POKEMONS + ")");
+        btnNext = new JButton("Siguiente");
+        
+        btnConfirm.setEnabled(false);
+        btnNext.setEnabled(false);
+        
+        buttonPanel.add(btnBack);
+        buttonPanel.add(btnConfirm);
+        buttonPanel.add(btnNext);
+        
+        bottomPanel.add(new JScrollPane(selectedPokemonsList), BorderLayout.CENTER);
+        bottomPanel.add(buttonPanel, BorderLayout.SOUTH);
+
+        add(selectionPanel, BorderLayout.NORTH);
+        add(centerPanel, BorderLayout.CENTER);
+        add(bottomPanel, BorderLayout.SOUTH);
+
+        loadPokemonTypes();
     }
 
-    private void prepareElementos() {
-        setLayout(new BorderLayout());
-        
-        try {
-            imagenFondo = ImageIO.read(getClass().getResource("/modoMenu.png"));
-        } catch (IOException e) {
-            imagenFondo = new BufferedImage(800, 600, BufferedImage.TYPE_INT_RGB);
-            Graphics2D g2d = imagenFondo.createGraphics();
-            g2d.setColor(new Color(50, 50, 70));
-            g2d.fillRect(0, 0, 800, 600);
-            g2d.dispose();
-        }
-
-        JPanel panelPrincipal = new JPanel() {
-            @Override
-            protected void paintComponent(Graphics g) {
-                super.paintComponent(g);
-                g.drawImage(imagenFondo, 0, 0, getWidth(), getHeight(), this);
+    private void prepareActions() {
+        cbTypes.addActionListener(e -> {
+            if (cbTypes.getSelectedItem() != null) {
+                loadPokemonsByType(Tipo.valueOf(((String) cbTypes.getSelectedItem()).toUpperCase()));
             }
-        };
-        panelPrincipal.setLayout(new BorderLayout());
-        panelPrincipal.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
+        });
 
-        JPanel panelTitulo = new JPanel();
-        panelTitulo.setOpaque(false);
-        JLabel titulo = new JLabel("SELECCIÓN DE POKÉMON - PLAYER 2", SwingConstants.CENTER);
-        titulo.setFont(new Font("Arial", Font.BOLD, 24));
-        titulo.setForeground(Color.WHITE);
-        panelTitulo.add(titulo);
-        panelPrincipal.add(panelTitulo, BorderLayout.NORTH);
-
-        JPanel panelPokemon = new JPanel(new GridLayout(0, 3, 20, 20));
-        panelPokemon.setOpaque(false);
-        
-        List<String> pokemonNames = pokemonGUI.getPokemonNames();
-        for (String name : pokemonNames) {
-            JCheckBox checkBox = new JCheckBox(name);
-            checkBox.setOpaque(false);
-            checkBox.setForeground(Color.WHITE);
-            checkBox.setFont(new Font("Arial", Font.BOLD, 14));
-            pokemonCheckboxes.put(name, checkBox);
-            panelPokemon.add(checkBox);
-        }
-
-        JScrollPane scrollPokemon = new JScrollPane(panelPokemon);
-        scrollPokemon.setOpaque(false);
-        scrollPokemon.getViewport().setOpaque(false);
-        scrollPokemon.setBorder(BorderFactory.createEmptyBorder());
-
-        contadorLabel = new JLabel("Pokémon seleccionados: 0/6", SwingConstants.CENTER);
-        contadorLabel.setFont(new Font("Arial", Font.BOLD, 16));
-        contadorLabel.setForeground(Color.WHITE);
-
-        JPanel panelBotones = new JPanel(new FlowLayout(FlowLayout.CENTER, 20, 10));
-        panelBotones.setOpaque(false);
-        btnRegresar = new JButton("Regresar");
-        btnSiguiente = new JButton("Siguiente");
-        
-        for (JButton btn : new JButton[]{btnRegresar, btnSiguiente}) {
-            btn.setPreferredSize(new Dimension(120, 40));
-            btn.setFont(new Font("Arial", Font.BOLD, 14));
-            btn.setBackground(new Color(70, 70, 90));
-            btn.setForeground(Color.WHITE);
-        }
-        
-        panelBotones.add(btnRegresar);
-        panelBotones.add(btnSiguiente);
-
-        JPanel panelSur = new JPanel(new BorderLayout());
-        panelSur.setOpaque(false);
-        panelSur.add(contadorLabel, BorderLayout.NORTH);
-        panelSur.add(panelBotones, BorderLayout.SOUTH);
-
-        panelPrincipal.add(scrollPokemon, BorderLayout.CENTER);
-        panelPrincipal.add(panelSur, BorderLayout.SOUTH);
-
-        add(panelPrincipal);
-    }
-
-    private void prepareAcciones() {
-        ItemListener checkboxListener = e -> {
-            JCheckBox source = (JCheckBox) e.getSource();
-            if (source.isSelected()) {
-                if (pokemonesSeleccionados < MAX_POKEMONES) {
-                    pokemonesSeleccionados++;
-                } else {
-                    source.setSelected(false);
-                }
+        cbPokemons.addActionListener(e -> {
+            String pokemonName = (String) cbPokemons.getSelectedItem();
+            if (pokemonName != null && !pokemonName.isEmpty()) {
+                showPokemonDetails(pokemonMap.get(pokemonName));
             } else {
-                pokemonesSeleccionados--;
+                showPokemonDetails(null);
             }
-            contadorLabel.setText("Pokémon seleccionados: " + pokemonesSeleccionados + "/6");
-            btnSiguiente.setEnabled(pokemonesSeleccionados > 0);
-        };
+        });
 
-        for (JCheckBox cb : pokemonCheckboxes.values()) {
-            cb.addItemListener(checkboxListener);
+        btnAddPokemon.addActionListener(e -> addSelectedPokemon());
+        btnRemovePokemon.addActionListener(e -> removeSelectedPokemon());
+        
+        btnBack.addActionListener(e -> {
+            pokemonGUI.volverAlMenuPrincipal();
+        });
+
+        btnNext.addActionListener(e -> {
+            if (selectedPokemons.isEmpty()) {
+                showError("Debes seleccionar al menos 1 Pokémon");
+                return;
+            }
+            pokemonGUI.setSelectedPokemons(new ArrayList<>(selectedPokemons));
+            pokemonGUI.mostrarSeleccionMovimientos(selectedPokemons);
+            pokemonGUI.mostrarPokemonSelectionPanelTwo();
+        });
+
+        btnConfirm.addActionListener(e -> {
+            if (selectedPokemons.isEmpty()) {
+                showError("Debes seleccionar al menos 1 Pokémon");
+                return;
+            }
+            if (JOptionPane.showConfirmDialog(this,
+                "¿Estás seguro de tu selección de Pokémon?",
+                "Confirmar selección",
+                JOptionPane.YES_NO_OPTION) == JOptionPane.YES_OPTION) {
+                pokemonGUI.setSelectedPokemons(new ArrayList<>(selectedPokemons));
+                pokemonGUI.mostrarSeleccionMovimientos(new ArrayList<>(selectedPokemons));
+            }
+        });
+    }
+
+    private void loadPokemonTypes() {
+        cbTypes.removeAllItems();
+        for (Tipo tipo : Tipo.values()) {
+            cbTypes.addItem(tipo.toString());
+        }
+    }
+
+    private void loadPokemonsByType(Tipo tipo) {
+        cbPokemons.removeAllItems();
+        pokemonMap.clear();
+        
+        List<Pokemon> pokemons = pokemonGUI.getPokemonAplication().getPokemonesPorTipo(tipo);
+        
+        for (Pokemon pokemon : pokemons) {
+            if (!selectedPokemons.contains(pokemon)) {
+                String pokemonName = pokemon.getNombre();
+                cbPokemons.addItem(pokemonName);
+                pokemonMap.put(pokemonName, pokemon);
+            }
+        }
+        
+        if (cbPokemons.getItemCount() > 0) {
+            cbPokemons.setSelectedIndex(0);
+        } else {
+            showPokemonDetails(null);
+        }
+    }
+
+    private ImageIcon loadPokemonImage(String pokemonName) {
+        if (pokemonName == null || pokemonName.isEmpty()) {
+            return null;
         }
 
-        btnRegresar.addActionListener(e -> {
-            pokemonGUI.mostrarMovimientoSelectionPanel(null);
-        });
+        String imagePath = POKEMON_IMAGE_MAP.get(pokemonName.toUpperCase());
+        if (imagePath == null) {
+            System.err.println("No se encontró ruta de imagen para: " + pokemonName);
+            return null;
+        }
 
-        btnSiguiente.addActionListener(e -> {
-            List<String> seleccionados = new ArrayList<>();
-            for (Map.Entry<String, JCheckBox> entry : pokemonCheckboxes.entrySet()) {
-                if (entry.getValue().isSelected()) {
-                    seleccionados.add(entry.getKey());
-                }
+        try {
+            URL imageUrl = getClass().getResource(imagePath);
+            if (imageUrl == null) {
+                throw new FileNotFoundException("No se encontró el recurso: " + imagePath);
             }
-            pokemonGUI.setPokemonSeleccionadosPlayer2(seleccionados);
-            pokemonGUI.mostrarMovimientoSelectionPanelTwo(null);
-        });
+            
+            ImageIcon originalIcon = new ImageIcon(imageUrl);
+            
+            if (originalIcon.getIconWidth() > 0 && originalIcon.getIconHeight() > 0) {
+                double scale = Math.min(250.0 / originalIcon.getIconWidth(), 250.0 / originalIcon.getIconHeight());
+                int width = (int)(originalIcon.getIconWidth() * scale);
+                int height = (int)(originalIcon.getIconHeight() * scale);
+                
+                return new ImageIcon(originalIcon.getImage().getScaledInstance(width, height, Image.SCALE_DEFAULT));
+            }
+            return originalIcon;
+        } catch (Exception e) {
+            System.err.println("Error cargando GIF animado para " + pokemonName + ": " + e.getMessage());
+
+            try {
+                InputStream is = getClass().getResourceAsStream(imagePath);
+                if (is != null) {
+                    BufferedImage image = ImageIO.read(is);
+                    is.close();
+                    if (image != null) {
+                        return new ImageIcon(image.getScaledInstance(250, 250, Image.SCALE_SMOOTH));
+                    }
+                }
+            } catch (IOException ioEx) {
+                System.err.println("Error en fallback estático: " + ioEx.getMessage());
+            }
+        }
+        
+        return null;
+    }
+
+    private void showPokemonDetails(Pokemon pokemon) {
+        if (pokemon == null) {
+            lblPokemonImage.setIcon(null);
+            lblPokemonImage.setText("Selecciona un Pokémon");
+            txtStats.setText("Selecciona un Pokémon para ver sus estadísticas");
+            return;
+        }
+
+        lblPokemonImage.setIcon(null);
+        
+        ImageIcon icon = loadPokemonImage(pokemon.getNombre());
+        if (icon != null) {
+            lblPokemonImage.setIcon(icon);
+            lblPokemonImage.setText("");
+        } else {
+            lblPokemonImage.setIcon(null);
+            lblPokemonImage.setText("Imagen no disponible");
+            System.err.println("No se pudo cargar la imagen para: " + pokemon.getNombre());
+        }
+
+        StringBuilder stats = new StringBuilder();
+        stats.append(String.format("Nombre: %s\n", pokemon.getNombre()));
+        stats.append(String.format("Nivel: %d\n", pokemon.getNivel()));
+        
+        List<Tipo> tipos = pokemon.getTipos();
+        stats.append("Tipo(s): ").append(tipos.get(0).toString());
+        if (tipos.size() > 1) {
+            stats.append("/").append(tipos.get(1).toString());
+        }
+        stats.append("\n");
+        
+        stats.append(String.format("PS: %d/%d\n", pokemon.getSalud(), pokemon.getSaludMaxima()));
+        stats.append(String.format("Ataque: %d\n", pokemon.getAtaque()));
+        stats.append(String.format("Defensa: %d\n", pokemon.getDefensa()));
+        stats.append(String.format("Ataque Especial: %d\n", pokemon.getAtaqueEspecial()));
+        stats.append(String.format("Defensa Especial: %d\n", pokemon.getDefensaEspecial()));
+        stats.append(String.format("Velocidad: %d\n", pokemon.getVelocidad()));
+        
+        txtStats.setText(stats.toString());
+    }
+
+    private String normalizeName(String name) {
+        return name.toLowerCase()
+            .replace("á", "a").replace("é", "e").replace("í", "i")
+            .replace("ó", "o").replace("ú", "u").replace(" ", "")
+            .replace("'", "").replace(".", "");
+    }
+
+    private void addSelectedPokemon() {
+        String pokemonName = (String) cbPokemons.getSelectedItem();
+        if (pokemonName == null || pokemonName.isEmpty()) {
+            showError("Selecciona un Pokémon primero");
+            return;
+        }
+
+        Pokemon pokemon = pokemonMap.get(pokemonName);
+        List<Tipo> tipos = pokemon.getTipos();
+        
+        if (selectedPokemons.size() >= MAX_POKEMONS) {
+            showError("No puedes tener más de " + MAX_POKEMONS + " Pokémon");
+            return;
+        }
+
+        for (Tipo tipo : tipos) {
+            if (typeCount.getOrDefault(tipo, 0) >= MAX_SAME_TYPE) {
+                showError("Límite alcanzado para el tipo " + tipo);
+                return;
+            }
+        }
+
+        selectedPokemons.add(pokemon);
+        listModel.addElement(pokemonName);
+        
+        for (Tipo tipo : tipos) {
+            typeCount.put(tipo, typeCount.getOrDefault(tipo, 0) + 1);
+        }
+        
+        loadPokemonsByType(Tipo.valueOf(((String) cbTypes.getSelectedItem()).toUpperCase()));
+        updateConfirmButton();
+    }
+
+    private void removeSelectedPokemon() {
+        int selectedIndex = selectedPokemonsList.getSelectedIndex();
+        if (selectedIndex == -1) {
+            showError("Selecciona un Pokémon de la lista");
+            return;
+        }
+
+        Pokemon pokemon = selectedPokemons.get(selectedIndex);
+        
+        selectedPokemons.remove(selectedIndex);
+        listModel.remove(selectedIndex);
+        
+        for (Tipo tipo : pokemon.getTipos()) {
+            typeCount.put(tipo, typeCount.get(tipo) - 1);
+        }
+        
+        loadPokemonsByType(Tipo.valueOf(((String) cbTypes.getSelectedItem()).toUpperCase()));
+        updateConfirmButton();
+    }
+
+    private void updateConfirmButton() {
+        btnConfirm.setText("Confirmar selección (" + selectedPokemons.size() + "/" + MAX_POKEMONS + ")");
+        btnConfirm.setEnabled(!selectedPokemons.isEmpty());
+        btnNext.setEnabled(!selectedPokemons.isEmpty());
+    }
+    
+    private void showError(String message) {
+        JOptionPane.showMessageDialog(this, message, "Error", JOptionPane.ERROR_MESSAGE);
     }
 }
