@@ -48,6 +48,7 @@ public class PokemonGUI extends JFrame {
     private String Entrenador2;
     private Entrenador jugador;
     private Entrenador oponente;
+    private String tipoMaquinaSeleccionada;
     private MenuItemsPvMPanel menuItemsPvMPanel;
     private MovimientoSelectionPanel movimientoSelectionPanel;
     private MovimientoSelectionPanelTwo movimientoSelectionPanelTwo;
@@ -273,7 +274,7 @@ public class PokemonGUI extends JFrame {
         
         // Crear la máquina según el tipo seleccionado (ExpertTrainer, AttackingTrainer, etc.)
         EntrenadorMachine maquina;
-        switch(tipoMaquinaSeleccionado) { // Asegúrate de tener esta variable
+        switch(tipoMaquinaSeleccionada) { // Asegúrate de tener esta variable
             case "ExpertTrainer":
                 maquina = new ExpertTrainer("Machine", "Machine");
                 break;
