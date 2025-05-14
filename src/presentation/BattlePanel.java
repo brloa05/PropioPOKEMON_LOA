@@ -160,10 +160,14 @@ public class BattlePanel extends JPanel {
         JPanel movesPanel = new JPanel(new GridLayout(3, 2, 5, 5));
         movesPanel.setOpaque(false);
         
+     // En la sección donde se crean los botones de movimiento
         List<Movimiento> movimientos = new ArrayList<>();
-        Map<Pokemon, List<Movimiento>> pokemonMoves = pokemonGUI.getPokemonMovements();
-        if (pokemonMoves != null && pokemonMoves.containsKey(pokemonJugador)) {
-            movimientos = pokemonMoves.get(pokemonJugador);
+        if (pokemonJugador != null) {
+            Map<Pokemon, List<Movimiento>> pokemonMoves = pokemonGUI.getPokemonMovements();
+            if (pokemonMoves != null) {
+                // Si no hay movimientos configurados, usar una lista vacía
+                movimientos = pokemonMoves.getOrDefault(pokemonJugador, new ArrayList<>());
+            }
         }
 
         // Crear los botones de movimiento
@@ -419,8 +423,26 @@ public class BattlePanel extends JPanel {
     }
 
     private void executeMove(int moveIndex) {
-        Movimiento movimiento = pokemonGUI.getPokemonMovements().get(pokemonJugador).get(moveIndex);
+        Map<Pokemon, List<Movimiento>> pokemonMoves = pokemonGUI.getPokemonMovements();
+        List<Movimiento> movimientos = pokemonMoves != null ? pokemonMoves.get(pokemonJugador) : null;
         
+        if (movimientos != null && moveIndex < movimientos.size()) {
+            Movimiento movimiento = movimientos.get(moveIndex);
+            
+            int damage = calculateDamage(movimiento, pokemonJugador, pokemonOponente);
+            pokemonOponente.recibirDanio(damage);
+            
+            updateHealthBars();
+            
+            if (pokemonOponente.estaDebilitado()) {
+                handlePokemonFainted(pokemonOponente);
+            } else {
+                enemyTurn();
+            }
+        }
+    }
+    
+    private void ejecutarMovimiento(Movimiento movimiento) {
         int damage = calculateDamage(movimiento, pokemonJugador, pokemonOponente);
         pokemonOponente.recibirDanio(damage);
         
@@ -440,8 +462,10 @@ public class BattlePanel extends JPanel {
     }
 
     private void enemyTurn() {
-        List<Movimiento> enemyMoves = pokemonGUI.getPokemonMovements().get(pokemonOponente);
-        if (!enemyMoves.isEmpty()) {
+        Map<Pokemon, List<Movimiento>> pokemonMoves = pokemonGUI.getPokemonMovements();
+        List<Movimiento> enemyMoves = pokemonMoves != null ? pokemonMoves.get(pokemonOponente) : null;
+        
+        if (enemyMoves != null && !enemyMoves.isEmpty()) {
             int moveIndex = (int)(Math.random() * enemyMoves.size());
             Movimiento selectedMove = enemyMoves.get(moveIndex);
             
@@ -483,4 +507,5 @@ public class BattlePanel extends JPanel {
         revalidate();
         repaint();
     }
+    
 }

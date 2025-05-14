@@ -73,9 +73,12 @@ public class PokemonGUI extends JFrame {
     
     public PokemonGUI() {
     	setTitle("POOKemon");
-    	prepareEntrenador();
-    	iniciarNuevaAplicacion();
-    	pokemonMovements = new HashMap<>();
+        prepareEntrenador();
+        iniciarNuevaAplicacion();
+        pokemonMovements = new HashMap<>();
+        playerPokemons = new HashMap<>();
+        playerMovements = new HashMap<>();
+        currentPlayer = null;  // Asegurarnos de que esto esté inicializado
         prepareElementosPantallaPrincipal();
         prepareAcciones();
         mostrarPantallaIntro();
@@ -245,7 +248,20 @@ public class PokemonGUI extends JFrame {
     }
     
     public void mostrarbattelPanel() {
-    	cardLayout.show(cardPanel, "MAIN BATTLE");
+        // Obtener los entrenadores actuales
+        Entrenador jugador = new EntrenadorPlayer(Entrenador1, "Player");
+        Entrenador oponente = new EntrenadorMachine(Entrenador2, "Machine");
+        
+        // Asignar los pokémones y movimientos al jugador desde los mapas existentes
+        if (playerPokemons.containsKey(Entrenador1)) {
+            jugador.setPokemones(playerPokemons.get(Entrenador1));
+        }
+        if (playerPokemons.containsKey(Entrenador2)) {
+            oponente.setPokemones(playerPokemons.get(Entrenador2));
+        }
+        
+        // Iniciar la batalla con los entrenadores configurados
+        iniciarBatalla(jugador, oponente);
     }
     
     
