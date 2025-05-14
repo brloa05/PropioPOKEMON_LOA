@@ -255,22 +255,29 @@ public class PokemonGUI extends JFrame {
     }
     
     public void mostrarbattelPanel() {
-    if (modoJuego.equals("PvM")) {
-        // Crear el jugador y asignar sus pokémon
-        EntrenadorPlayer jugador = new EntrenadorPlayer(currentPlayer, "Player");
-        if (playerPokemons.containsKey(currentPlayer)) {
-            jugador.setPokemones(playerPokemons.get(currentPlayer));
-            Map<Pokemon, List<Movimiento>> movimientos = playerMovements.get(currentPlayer);
-            // Asignar movimientos a cada pokémon
-            if (movimientos != null) {
-                for (Pokemon pokemon : jugador.getPokemones()) {
-                    List<Movimiento> movimientosPokemon = movimientos.get(pokemon);
-                    if (movimientosPokemon != null) {
-                        pokemon.setMovimientos(movimientosPokemon);
-                    }
-                }
-            }
+    	if (modoJuego == null) {
+            JOptionPane.showMessageDialog(this,
+                "Error: Modo de juego no seleccionado",
+                "Error",
+                JOptionPane.ERROR_MESSAGE);
+            return;
         }
+	    if (modoJuego.equals("PvM")) {
+	        // Crear el jugador y asignar sus pokémon
+	        EntrenadorPlayer jugador = new EntrenadorPlayer(currentPlayer, "Player");
+	        if (playerPokemons.containsKey(currentPlayer)) {
+	            jugador.setPokemones(playerPokemons.get(currentPlayer));
+	            Map<Pokemon, List<Movimiento>> movimientos = playerMovements.get(currentPlayer);
+	            // Asignar movimientos a cada pokémon
+	            if (movimientos != null) {
+	                for (Pokemon pokemon : jugador.getPokemones()) {
+	                    List<Movimiento> movimientosPokemon = movimientos.get(pokemon);
+	                    if (movimientosPokemon != null) {
+	                        pokemon.setMovimientos(movimientosPokemon);
+	                    }
+	                }
+	            }
+	        }
         
         // Crear la máquina según el tipo seleccionado (ExpertTrainer, AttackingTrainer, etc.)
         EntrenadorMachine maquina;
@@ -792,6 +799,10 @@ public class PokemonGUI extends JFrame {
 
     public void setMovimientosSeleccionadosPlayer(List<String> seleccionados) {
         pokemonAplication.setMovimientosSeleccionadosPlayer(seleccionados);
+    }
+    
+    public void setModoJuego(String modo) {
+        this.modoJuego = modo;
     }
     
     public void displayCurrentPlayerData() {

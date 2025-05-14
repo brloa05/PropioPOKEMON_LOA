@@ -113,7 +113,7 @@ public class MovimientoSelectionPvMPanel extends JPanel {
 
             if (allComplete) {
                 pokemonGUI.setPokemonMovements(new HashMap<>(movimientosAsignados));
-                pokemonGUI.displayCurrentPlayerData();  // Mostrar datos actualizados
+                pokemonGUI.displayCurrentPlayerData(); 
             } else {
                 JOptionPane.showMessageDialog(this,
                     "Debes asignar 4 movimientos a cada Pokémon",
@@ -123,6 +123,7 @@ public class MovimientoSelectionPvMPanel extends JPanel {
         });
         
         btnSiguiente.addActionListener(e -> {
+            pokemonGUI.setModoJuego("PvM");  
             pokemonGUI.mostrarbattelPanel();  
         });
     }

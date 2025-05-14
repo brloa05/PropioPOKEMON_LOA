@@ -1,14 +1,9 @@
 package presentation;
 
-import domain.Especial;
-import domain.Fisico;
-import domain.Movimiento;
 import domain.Pokemon;
 import domain.Pokemon.Tipo;
-import domain.PokemonAplication;
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.*;
 import java.awt.image.BufferedImage;
 import java.io.*;
 import java.net.URL;
@@ -327,12 +322,6 @@ public class PokemonSelectionPanel extends JPanel {
         txtStats.setText(stats.toString());
     }
 
-    private String normalizeName(String name) {
-        return name.toLowerCase()
-            .replace("á", "a").replace("é", "e").replace("í", "i")
-            .replace("ó", "o").replace("ú", "u").replace(" ", "")
-            .replace("'", "").replace(".", "");
-    }
 
     private void addSelectedPokemon() {
         String pokemonName = (String) cbPokemons.getSelectedItem();
