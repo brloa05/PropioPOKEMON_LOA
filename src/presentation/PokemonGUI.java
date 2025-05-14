@@ -82,13 +82,17 @@ public class PokemonGUI extends JFrame {
     
     
     public PokemonGUI() {
-    	setTitle("POOKemon");
+        setTitle("POOKemon");
         prepareEntrenador();
         iniciarNuevaAplicacion();
+        
+        // Inicializar todas las estructuras de datos
         pokemonMovements = new HashMap<>();
         playerPokemons = new HashMap<>();
         playerMovements = new HashMap<>();
-        currentPlayer = null;  // Asegurarnos de que esto esté inicializado
+        selectedPokemons = new ArrayList<>();
+        
+        currentPlayer = null;
         prepareElementosPantallaPrincipal();
         prepareAcciones();
         mostrarPantallaIntro();
@@ -269,7 +273,8 @@ public class PokemonGUI extends JFrame {
     
  // Método para mostrar batalla PvM
     public void mostrarBattlePvMPanel() {
-    try {
+    	debugMovements();
+    	try {
         // Verifica si el jugador está inicializado
         if (jugador == null) {
             // Si no hay jugador, crea uno nuevo con los datos disponibles
@@ -279,6 +284,11 @@ public class PokemonGUI extends JFrame {
             if (currentPlayer != null && playerPokemons.containsKey(currentPlayer)) {
                 jugador.setPokemones(playerPokemons.get(currentPlayer));
             }
+            
+            if (!playerMovements.containsKey(currentPlayer)) {
+                throw new IllegalStateException("No se han asignado movimientos para el jugador actual");
+            }
+            
         }
 
         // Crear la máquina según el tipo seleccionado
@@ -304,6 +314,10 @@ public class PokemonGUI extends JFrame {
         // Verificar los Pokémon del jugador y la máquina
         if (jugador.getPokemones() == null || jugador.getPokemones().isEmpty()) {
             throw new IllegalStateException("El jugador debe tener al menos un Pokémon para iniciar la batalla");
+        }
+        
+        if (maquina == null) {
+        	
         }
 
         if (maquina.getPokemones() == null || maquina.getPokemones().isEmpty()) {
@@ -611,7 +625,12 @@ public void setModoJuego(ModoJuego modo) {
     
     public void setPokemonMovements(Map<Pokemon, List<Movimiento>> movements) {
         if (currentPlayer != null) {
-            playerMovements.put(currentPlayer, new HashMap<>(movements));
+            if (playerMovements == null) {
+                playerMovements = new HashMap<>();
+            }
+            Map<Pokemon, List<Movimiento>> pokemonMoves = new HashMap<>(movements);
+            playerMovements.put(currentPlayer, pokemonMoves);
+            
             System.out.println("\n=== Movimientos asignados por " + currentPlayer + " ===");
             for (Map.Entry<Pokemon, List<Movimiento>> entry : movements.entrySet()) {
                 System.out.println("Pokémon: " + entry.getKey().getNombre());
@@ -621,7 +640,13 @@ public void setModoJuego(ModoJuego modo) {
                 }
             }
             System.out.println("=====================================\n");
+            
+            // También actualizar pokemonMovements para compatibilidad
+            this.pokemonMovements = new HashMap<>(movements);
+        } else {
+            System.out.println("Error: No hay jugador actual seleccionado");
         }
+        debugMovements();
     }
     
     public void mostrarSeleccionMovimientos(List<Pokemon> pokemones) {
@@ -645,11 +670,14 @@ public void setModoJuego(ModoJuego modo) {
     }
 
     public Map<Pokemon, List<Movimiento>> getPokemonMovements() {
-        if (pokemonMovements == null) {
-            System.out.println("Warning: pokemonMovements es null");
-            return new HashMap<>();
+        if (currentPlayer != null && playerMovements != null) {
+            Map<Pokemon, List<Movimiento>> movements = playerMovements.get(currentPlayer);
+            if (movements != null) {
+                return movements;
+            }
         }
-        return pokemonMovements;
+        System.out.println("Warning: No se encontraron movimientos para el jugador actual");
+        return new HashMap<>();
     }
     
     private void comenzarBatalla() {
@@ -882,6 +910,27 @@ public void setModoJuego(ModoJuego modo) {
         for (Pokemon pokemon : maquina.getPokemones()) {
             maquina.agregarMovimientos(pokemon, movimientosPorTipo, new ArrayList<>());
         }
+    }
+    
+    private void debugMovements() {
+        System.out.println("\n=== Debug de Movimientos ===");
+        System.out.println("Jugador actual: " + currentPlayer);
+        System.out.println("playerMovements null? " + (playerMovements == null));
+        if (playerMovements != null) {
+            System.out.println("Número de jugadores con movimientos: " + playerMovements.size());
+            for (Map.Entry<String, Map<Pokemon, List<Movimiento>>> entry : playerMovements.entrySet()) {
+                System.out.println("\nJugador: " + entry.getKey());
+                Map<Pokemon, List<Movimiento>> pokemonMoves = entry.getValue();
+                for (Map.Entry<Pokemon, List<Movimiento>> pokemonEntry : pokemonMoves.entrySet()) {
+                    System.out.println("  Pokémon: " + pokemonEntry.getKey().getNombre());
+                    System.out.println("  Movimientos: " + pokemonEntry.getValue().size());
+                    for (Movimiento mov : pokemonEntry.getValue()) {
+                        System.out.println("    - " + mov.getName());
+                    }
+                }
+            }
+        }
+        System.out.println("===========================\n");
     }
     
     public void displayCurrentPlayerData() {
