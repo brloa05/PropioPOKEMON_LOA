@@ -167,8 +167,7 @@ public class PokemonSelectionPvMPanel extends JPanel {
                 return;
             }
             pokemonGUI.setSelectedPokemons(new ArrayList<>(selectedPokemons));
-            pokemonGUI.mostrarSeleccionMovimientos(selectedPokemons);
-            pokemonGUI.mostrarPokemonSelectionPvMPanel();
+            pokemonGUI.mostrarMovimientoSelectionPvMPanel(selectedPokemons);
         });
 
         btnConfirm.addActionListener(e -> {
