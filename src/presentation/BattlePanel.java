@@ -125,15 +125,11 @@ public class BattlePanel extends JPanel {
         // Panel del enemigo
         JPanel enemyInfoPanel = createPokemonInfoPanel(pokemonOponente, false);
         battlePanel.add(enemyInfoPanel);
-        battlePanel.add(new JPanel() {
-            {setOpaque(false);}
-        });
+        battlePanel.add(new JPanel() {{setOpaque(false);}});
 
         // Panel del jugador
         JPanel playerInfoPanel = createPokemonInfoPanel(pokemonJugador, true);
-        battlePanel.add(new JPanel() {
-            {setOpaque(false);}
-        });
+        battlePanel.add(new JPanel() {{setOpaque(false);}});
         battlePanel.add(playerInfoPanel);
 
         // Panel de acciones (área inferior negra)
@@ -229,15 +225,15 @@ public class BattlePanel extends JPanel {
         return map;
     }
 
-    private ImageIcon loadPokemonImage(String pokemonName, boolean isPlayer) {
+    private BufferedImage loadPokemonImage(String pokemonName, boolean isPlayer) {
         if (pokemonName == null || pokemonName.isEmpty()) {
-            return null;
+            return createPlaceholderImage();
         }
 
         String imagePath = POKEMON_IMAGE_MAP.get(pokemonName.toUpperCase());
         if (imagePath == null) {
             System.err.println("No se encontró ruta de imagen para: " + pokemonName);
-            return null;
+            return createPlaceholderImage();
         }
 
         try {
@@ -246,22 +242,10 @@ public class BattlePanel extends JPanel {
                 throw new FileNotFoundException("No se encontró el recurso: " + imagePath);
             }
             
-            ImageIcon originalIcon = new ImageIcon(imageUrl);
-            
-            if (originalIcon.getIconWidth() > 0 && originalIcon.getIconHeight() > 0) {
-                double scale = Math.min(250.0 / originalIcon.getIconWidth(), 
-                                     250.0 / originalIcon.getIconHeight());
-                int width = (int)(originalIcon.getIconWidth() * scale);
-                int height = (int)(originalIcon.getIconHeight() * scale);
-                
-                return new ImageIcon(originalIcon.getImage().getScaledInstance(
-                    width, height, Image.SCALE_DEFAULT));
-            }
-            return originalIcon;
+            return ImageIO.read(imageUrl);
         } catch (Exception e) {
-            System.err.println("Error cargando GIF animado para " + pokemonName + 
-                             ": " + e.getMessage());
-            return null;
+            System.err.println("Error cargando imagen para " + pokemonName + ": " + e.getMessage());
+            return createPlaceholderImage();
         }
     }
     
@@ -366,9 +350,17 @@ public class BattlePanel extends JPanel {
         imagePanel.setOpaque(false);
         
         BufferedImage pokemonImage = isPlayer ? playerPokemonImage : enemyPokemonImage;
-        ImageIcon pokemonIcon = new ImageIcon(pokemonImage.getScaledInstance(200, 200, Image.SCALE_SMOOTH));
-        JLabel imageLabel = new JLabel(pokemonIcon);
-        imagePanel.add(imageLabel, BorderLayout.CENTER);
+        if (pokemonImage != null) {
+            Image scaledImage = pokemonImage.getScaledInstance(200, 200, Image.SCALE_SMOOTH);
+            JLabel imageLabel = new JLabel(new ImageIcon(scaledImage));
+            imagePanel.add(imageLabel, BorderLayout.CENTER);
+        } else {
+            // Crear una imagen de placeholder si la imagen es null
+            BufferedImage placeholder = createPlaceholderImage();
+            Image scaledPlaceholder = placeholder.getScaledInstance(200, 200, Image.SCALE_SMOOTH);
+            JLabel placeholderLabel = new JLabel(new ImageIcon(scaledPlaceholder));
+            imagePanel.add(placeholderLabel, BorderLayout.CENTER);
+        }
 
         panel.add(infoPanel);
         panel.add(imagePanel);
