@@ -1,9 +1,6 @@
 package presentation;
 
 import domain.*;
-import domain.Movimiento.ObjetivoEfecto;
-import domain.Movimiento.TipoEfecto;
-import domain.Pokemon.Tipo;
 
 import javax.swing.*;
 import java.awt.*;
@@ -83,56 +80,6 @@ public class BattlePvMPanel extends JPanel {
         map.put("DELIBIRD", "/delibird-Objetivo.gif");
         
         return map;
-    }
-
-    private void cargarDatosDePrueba() {
-        this.jugador = new EntrenadorPlayer("Jugador", "Player");
-        this.maquina = new ExpertTrainer("Machine", "Machine");
-        
-        // Configurar movimientos de prueba para el jugador
-        List<Movimiento> movimientosJugador = new ArrayList<>();
-        movimientosJugador.add(new Fisico("Lanzallamas", 90, 100, 15, 
-            "Puede quemar (10%)", TipoEfecto.QUEMAR, ObjetivoEfecto.OBJETIVO, 0));
-        movimientosJugador.add(new Especial("Giro Fuego", 35, 85, 15, 
-            "Puede quemar (10%)", TipoEfecto.QUEMAR, ObjetivoEfecto.OBJETIVO, 0));
-        
-        // Configurar pokémon de prueba para el jugador
-        List<Pokemon> equipoJugador = new ArrayList<>();
-        equipoJugador.add(new PokemonUnTipo("CHARIZARD", 50, movimientosJugador));
-        this.jugador.setPokemones(equipoJugador);
-
-        // Crear el mapa de pokémon por tipo para la máquina
-        Map<Pokemon.Tipo, List<Pokemon>> pokemonesPorTipo = new HashMap<>();
-        
-        // Inicializar las listas para cada tipo
-        for (Pokemon.Tipo tipo : Pokemon.Tipo.values()) {
-            pokemonesPorTipo.put(tipo, new ArrayList<>());
-        }
-        
-        // Agregar pokémon de un tipo
-        for (PokemonUnTipo.PokemonBase base : PokemonUnTipo.PokemonBase.values()) {
-            Pokemon pokemon = new PokemonUnTipo(base.name(), base.stats[0], new ArrayList<>());
-            pokemonesPorTipo.get(base.tipo).add(pokemon);
-        }
-        
-        // Agregar pokémon de dos tipos
-        for (PokemonDosTipos.PokemonBase base : PokemonDosTipos.PokemonBase.values()) {
-            Pokemon pokemon = new PokemonDosTipos(base.name(), base.stats[0], new ArrayList<>());
-            pokemonesPorTipo.get(base.tipo1).add(pokemon);
-        }
-        
-        // Dejar que la máquina escoja sus pokémon
-        this.maquina.escogerPokemonesTipo(pokemonesPorTipo);
-
-        // Agregar movimientos a los pokémon de la máquina
-        Map<Pokemon.Tipo, List<Movimiento>> movimientosPorTipo = new HashMap<>();
-        for (Pokemon.Tipo tipo : Pokemon.Tipo.values()) {
-            movimientosPorTipo.put(tipo, Movimiento.getMovimientosPorTipo(tipo));
-        }
-        
-        for (Pokemon pokemon : this.maquina.getPokemones()) {
-            this.maquina.agregarMovimientos(pokemon, movimientosPorTipo, new ArrayList<>());
-        }
     }
 
     private void prepareElements() {
@@ -454,18 +401,18 @@ public class BattlePvMPanel extends JPanel {
     private void handleItems() {
         List<Item> items = jugador.getItems();
         if (items.isEmpty()) {
-            JOptionPane.showMessageDialog(this, "No tienes items disponibles", "Items", JOptionPane.INFORMATION_MESSAGE);
+            JOptionPane.showMessageDialog(this, "No tienes objetos disponibles", "Objetos", JOptionPane.INFORMATION_MESSAGE);
             return;
         }
 
         String[] itemIds = items.stream()
-            .map(Item::getId)  // Cambiado para usar getId() que es el método correcto
+            .map(Item::getId)
             .toArray(String[]::new);
 
         String selectedItemId = (String) JOptionPane.showInputDialog(
             this,
-            "Selecciona un item para usar:",
-            "Usar Item",
+            "Selecciona un objeto para usar:",
+            "Usar Objeto",
             JOptionPane.QUESTION_MESSAGE,
             null,
             itemIds,
@@ -474,23 +421,25 @@ public class BattlePvMPanel extends JPanel {
 
         if (selectedItemId != null) {
             Item item = items.stream()
-                .filter(i -> i.getId().equals(selectedItemId))  // Cambiado para usar getId()
+                .filter(i -> i.getId().equals(selectedItemId))
                 .findFirst()
                 .orElse(null);
 
             if (item != null) {
                 aplicarItem(item, pokemonJugador);
                 updateHealthBars();
+                // Después de usar el item, es el turno de la máquina
                 realizarTurnoMaquina();
             }
         }
     }
 
     private void aplicarItem(Item item, Pokemon pokemon) {
-        // Usar el método efectoItem que es el que aplica el efecto del item
+        // Usar el método de efecto del item
         String resultado = item.efectoItem(pokemon);
         if (!resultado.equals("No efectuo")) {
             jugador.getItems().remove(item);
+            updateHealthBars(); // Actualizar las barras de vida para mostrar el efecto de curación
         }
     }
 
@@ -543,11 +492,8 @@ public class BattlePvMPanel extends JPanel {
         if (moveIndex < movimientos.size()) {
             Movimiento movimiento = movimientos.get(moveIndex);
             
-            // Obtener el tipo del movimiento desde el PokemonGUI o PokemonApplication
-            Pokemon.Tipo tipoMovimiento = null;
             for (Pokemon.Tipo tipo : Pokemon.Tipo.values()) {
                 if (pokemonGUI.getPokemonAplication().getMovimientosPorTipo(tipo).contains(movimiento)) {
-                    tipoMovimiento = tipo;
                     break;
                 }
             }
@@ -576,7 +522,41 @@ public class BattlePvMPanel extends JPanel {
     }
 
     private void realizarTurnoMaquina() {
-        // Obtener los movimientos del pokémon de la máquina desde el mapa de movimientos
+        // Primero verificamos si la máquina debe usar un item
+        if (pokemonMaquina.getSalud() < pokemonMaquina.getSaludMaxima() * 0.3) {
+            // Obtener items de la máquina
+            List<Item> itemsMaquina = maquina.getItems();
+            
+            // Buscar un item de curación (que no sea Revive ya que el Pokémon no está debilitado)
+            Item itemParaUsar = itemsMaquina.stream()
+                .filter(item -> !item.esRevive())
+                .findFirst()
+                .orElse(null);
+            
+            if (itemParaUsar != null) {
+                // Mostrar mensaje de que la máquina está usando un item
+                JOptionPane.showMessageDialog(this, 
+                    "La máquina usa " + itemParaUsar.getId() + " en " + pokemonMaquina.getNombre(),
+                    "Uso de Item",
+                    JOptionPane.INFORMATION_MESSAGE);
+                
+                // Aplicar el efecto del item
+                String resultado = itemParaUsar.efectoItem(pokemonMaquina);
+                
+                // Si el item tuvo efecto, actualizamos la interfaz
+                if (!resultado.equals("No efectuo")) {
+                    itemsMaquina.remove(itemParaUsar); // Remover el item usado
+                    updateHealthBars();
+                    JOptionPane.showMessageDialog(this,
+                        pokemonMaquina.getNombre() + " ha recuperado salud!",
+                        "Efecto del Item",
+                        JOptionPane.INFORMATION_MESSAGE);
+                    return; // La máquina usó un item, termina su turno
+                }
+            }
+        }
+
+        // Si no usó un item o el item no tuvo efecto, realiza un ataque
         Map<Pokemon, List<Movimiento>> pokemonMoves = pokemonGUI.getPokemonMovements();
         List<Movimiento> movimientosDisponibles = pokemonMoves.get(pokemonMaquina);
         
@@ -585,12 +565,19 @@ public class BattlePvMPanel extends JPanel {
             int index = (int)(Math.random() * movimientosDisponibles.size());
             Movimiento movimiento = movimientosDisponibles.get(index);
             
+            // Mostrar mensaje del movimiento usado
+            JOptionPane.showMessageDialog(this,
+                pokemonMaquina.getNombre() + " usa " + movimiento.getName() + "!",
+                "Ataque de la Máquina",
+                JOptionPane.INFORMATION_MESSAGE);
+            
             // Realizar el ataque
             int damage = calculaDaño(movimiento, pokemonMaquina, pokemonJugador);
             pokemonJugador.recibirDanio(damage);
             
             updateHealthBars();
             
+            // Verificar si el Pokémon del jugador fue debilitado
             if (pokemonJugador.estaDebilitado()) {
                 handlePokemonFainted(pokemonJugador);
             }

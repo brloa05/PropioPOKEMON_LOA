@@ -26,7 +26,6 @@ public class BattlePanel extends JPanel {
     private BufferedImage backgroundImage;
     private BufferedImage playerPokemonImage;
     private BufferedImage enemyPokemonImage;
-    private JPanel actionPanel;
     private JButton[] moveButtons = new JButton[4];
     private JProgressBar playerHealthBar;
     private JProgressBar enemyHealthBar;
