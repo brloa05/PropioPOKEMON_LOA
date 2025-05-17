@@ -99,6 +99,7 @@ public abstract class Entrenador {
     
     public void pokemonesAleatorios() {
     	
+    	
     }
     public void movimientosAleatorios() {
     
