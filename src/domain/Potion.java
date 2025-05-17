@@ -3,14 +3,25 @@ package domain;
 public class Potion extends Item{
 	
 	private static final String  name = "Potion";
-	private static final int recuperacion =  20;
+	private static final String  tipo = "Potion";
+	private final int recuperacion =  20;
 	
 	public Potion(String id) {
 		super(id);
 		// TODO Auto-generated constructor stub
 	}
-
-	
+	@Override
+	public String getTipo() {
+        return tipo;
+    }
+	@Override
+    public boolean esPocion() {
+        return tipo.toLowerCase().contains("Potion");
+    }
+	@Override
+    public boolean esRevivir() {
+        return tipo.toLowerCase().contains("Revive");
+    }
 	
 
 

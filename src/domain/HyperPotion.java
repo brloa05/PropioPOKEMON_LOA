@@ -2,7 +2,8 @@ package domain;
 
 public class HyperPotion extends Item {
 	private static final String  name = "HyperPotion";
-	private static final int recuperacion = 200;
+	private static final String  tipo = "Potion";
+	private final int recuperacion = 200;
 	public HyperPotion(String id) {
 		super(id);
 		// TODO Auto-generated constructor stub
@@ -13,7 +14,19 @@ public class HyperPotion extends Item {
 	public int getRecuperacion() {
 		return recuperacion;
 	}
-
+	@Override
+	public String getTipo() {
+        return tipo;
+    }
+	@Override
+    public boolean esPocion() {
+        return tipo.toLowerCase().contains("Potion");
+    }
+	@Override
+    public boolean esRevivir() {
+        return tipo.toLowerCase().contains("Revive");
+    }
+    
 	@Override
 	public String efectoItem(Pokemon pokemon) {
 		if (pokemon.getSalud() == 0) {

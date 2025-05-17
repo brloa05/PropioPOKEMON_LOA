@@ -18,6 +18,12 @@ public abstract class Item {
 	public boolean esRevive() {
         return false;
     }
+	
+	public abstract String getTipo();
+
+    public abstract boolean esPocion();
+
+    public abstract boolean esRevivir();
 
 
 }

@@ -136,7 +136,7 @@ public class PokemonGUI extends JFrame {
         pokemonSelectionPanelTwo = new PokemonSelectionPanelTwo(this);
         pokemonSelectionPvMPanel = new PokemonSelectionPvMPanel(this);
         
-        battlePanel = new BattlePanel(this, null, null);
+        
         
         cardPanel.add(introPanel, "INTRO");
         cardPanel.add(menuPanel, "MAIN");
@@ -156,7 +156,7 @@ public class PokemonGUI extends JFrame {
         cardPanel.add(pokemonSelectionPanel, "MAIN POK PVP");
         cardPanel.add(pokemonSelectionPanelTwo, "MAIN POK TWO");
         cardPanel.add(pokemonSelectionPvMPanel, "MAIN POK PVM");
-        cardPanel.add(battlePanel, "MAIN BATTLE");
+        
         
         add(cardPanel);
     }
@@ -420,7 +420,7 @@ public class PokemonGUI extends JFrame {
 
 	
 	public void comienzoAgregarObjetosSurvival() {
-	pokemonAplication.agregarObjetosSupervivencia();
+		pokemonAplication.agregarObjetosSupervivencia();
 	}
     
     private void centrarVentana() {

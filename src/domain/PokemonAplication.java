@@ -185,6 +185,7 @@ public class PokemonAplication {
 	        return new ArrayList<>(movimientosPorTipo.getOrDefault(tipo, new ArrayList<>()));
 	    }
 	 
+	 
 	 public void inicializarPokemonesDisponibles() {
 		 
 		 pokemones.add(new PokemonUnTipo("BLASTOISE", 100, getMovimientosPorTipo(Pokemon.Tipo.AGUA)));
@@ -319,8 +320,8 @@ public class PokemonAplication {
 	public void agregarObjetosSupervivencia() {
 		for (Entrenador e: this.entrenadores) {
 			e.itemsAleatorios(this.items);
-			e.pokemonesAleatorios(this.items);
-			e.movimientosAleatorios(this.items);
+			e.pokemonesAleatorios(this.pokemones);
+			e.movimientosAleatorios(this.movimientosPorTipo);
 		}
 	}
 	
