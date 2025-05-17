@@ -312,6 +312,7 @@ public class PokemonAplication {
 		
 	}
 	
+
 	public void agregarObjetosSupervivencia() {
 		for (Entrenador e: this.entrenadores) {
 			e.itemsAleatorios();
@@ -349,9 +350,8 @@ public class PokemonAplication {
 			}
 		}
 		return itemEscogidos;		
+
 	}
-	
-	
 	
 	public boolean usarItem(Pokemon pokemon,Item item, Entrenador entrenador) {
 		String idORespuesta = item.efectoItem(pokemon);
@@ -507,6 +507,8 @@ public class PokemonAplication {
 	public String getSelectionStatus() {
 	    return "Pokémon seleccionados: " + selectedPokemons.size() + "/" + MAX_POKEMONS;
 	}
+	
+	
 	
 	//prueba agregar
 	public static void main(String[] args) {

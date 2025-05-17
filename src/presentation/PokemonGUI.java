@@ -19,6 +19,7 @@ import domain.Pokemon;
 import domain.PokemonAplication;
 import domain.PokemonDosTipos;
 import domain.PokemonUnTipo;
+import domain.SuperPotion;
 import domain.AttackingTrainer;
 import domain.ChangingTrainer;
 import domain.DefensiveTrainer;
@@ -26,6 +27,7 @@ import domain.Entrenador;
 import domain.EntrenadorMachine;
 import domain.EntrenadorPlayer;
 import domain.ExpertTrainer;
+import domain.HyperPotion;
 import domain.Item;
 
 public class PokemonGUI extends JFrame {
@@ -72,7 +74,7 @@ public class PokemonGUI extends JFrame {
     private Map<Pokemon, List<Movimiento>> pokemonMovements;
     
     private Map<String, List<Pokemon>> playerPokemons;
-    private Map<String, Map<Pokemon, List<Movimiento>>> playerMovements;
+    public Map<String, Map<Pokemon, List<Movimiento>>> playerMovements;
     private String currentPlayer;
     
     private String tipoMaquinaSeleccionada = "Normal";
@@ -328,16 +330,16 @@ public class PokemonGUI extends JFrame {
         cardPanel.add(battlePvMPanel, "BATTLE");
         cardLayout.show(cardPanel, "BATTLE");
 
-    } catch (IllegalStateException e) {
-        JOptionPane.showMessageDialog(
-            this,
-            "Error al iniciar la batalla: " + e.getMessage(),
-            "Error",
-            JOptionPane.ERROR_MESSAGE
-        );
-        volverAlMenuPrincipal();
+	    } catch (IllegalStateException e) {
+	        JOptionPane.showMessageDialog(
+	            this,
+	            "Error al iniciar la batalla: " + e.getMessage(),
+	            "Error",
+	            JOptionPane.ERROR_MESSAGE
+	        );
+	        volverAlMenuPrincipal();
+	    }
     }
-}
 
     // Método para mostrar batalla PvP
     public void mostrarBattlePanel() {
@@ -378,62 +380,48 @@ public class PokemonGUI extends JFrame {
 
 
 
-// Añade los métodos getter y setter para modoJuego
-public ModoJuego getModoJuego() {
-    return modoJuego;
-}
-
-public void setModoJuego(ModoJuego modo) {
-    this.modoJuego = modo;
-}
+	// Añade los métodos getter y setter para modoJuego
+	public ModoJuego getModoJuego() {
+	    return modoJuego;
+	}
+	
+	public void setModoJuego(ModoJuego modo) {
+	    this.modoJuego = modo;
+	}
 
     
     
-    public void comienzoAgregarItems1(Map<String,Integer> itemsSeleccionados,String  numero) {
-    	ArrayList<String> items = new ArrayList<>(); 
-    	for (Map.Entry<String,Integer> i: itemsSeleccionados.entrySet()) {
-    		if (i.getKey().equals("HyperPotion")) {
-    			for(int t = 0; t < i.getValue(); t++ ) {
-    				items.add("HyperPotion");
-    			}
-    		} else if(i.getKey().equals("SuperPotion")) {
-    			for(int t = 0; t < i.getValue(); t++ ) {
-    				items.add("SuperPotion");
-    			}
-    		} else if(i.getKey().equals("Potion")) {
-    			for(int t = 0; t < i.getValue(); t++ ) {
-    				items.add("Potion");
-    			}
-    		}else if(i.getKey().equals("Revive")) {
-    			for(int t = 0; t < i.getValue(); t++ ) {
-    				items.add("Revive");
-    			}
-    		}
-    	}
-    	
-    	
-    	Map<Entrenador, ArrayList<Item>> playerItems = new HashMap<>();
-    	ArrayList<Item> itemsEscogidos = pokemonAplication.escojerItems(items);
-    	ArrayList<Entrenador> entrenadores = pokemonAplication.getEntrenadores();
-    	
-    	
-    	
-    	String nombreBuscado = "player1".equals(numero) ? Entrenador1 : Entrenador2;
+	public void comienzoAgregarItems1(Map<String,Integer> itemsSeleccionados, String numero) {
+	    ArrayList<String> items = new ArrayList<>();
+	    
+	    // Convertir el Map a lista de strings
+	    for (Map.Entry<String,Integer> i: itemsSeleccionados.entrySet()) {
+	        for(int t = 0; t < i.getValue(); t++ ) {
+	            items.add(i.getKey());
+	        }
+	    }
+	    
+	    // Crear el Map para agregar los items al entrenador
+	    Map<Entrenador, ArrayList<Item>> playerItems = new HashMap<>();
+	    ArrayList<Item> itemsEscogidos = pokemonAplication.escojerItems(items);
+	    ArrayList<Entrenador> entrenadores = pokemonAplication.getEntrenadores();
+	    
+	    // Buscar el entrenador correcto y asignarle los items
+	    String nombreBuscado = "player1".equals(numero) ? Entrenador1 : Entrenador2;
+	    for (Entrenador e : entrenadores) {
+	        if (e.getName().equals(nombreBuscado)) {
+	            playerItems.put(e, itemsEscogidos);
+	            break;
+	        }
+	    }
+	    
+	    pokemonAplication.agregarItemsLucha(playerItems);
+	}
 
-    	for (Entrenador e : entrenadores) {
-    	    if (e.getName().equals(nombreBuscado)) {
-    	        playerItems.put(e, itemsEscogidos);
-    	        break;
-    	    }
-    	}
-    	
-    	pokemonAplication.agregarItemsLucha(playerItems);
-    	
-    }
-    
-    public void comienzoAgregarObjetosSurvival() {
-    	pokemonAplication.agregarObjetosSupervivencia();
-    }
+	
+	public void comienzoAgregarObjetosSurvival() {
+	pokemonAplication.agregarObjetosSupervivencia();
+	}
     
     private void centrarVentana() {
         Dimension screen = Toolkit.getDefaultToolkit().getScreenSize();
@@ -696,6 +684,8 @@ public void setModoJuego(ModoJuego modo) {
         // Crear mapas para la máquina
         Map<Pokemon.Tipo, List<Pokemon>> pokemonesPorTipo = new HashMap<>();
         
+     // En la clase PokemonGUI
+        
         // Agrupar pokémon de un tipo
         for (PokemonUnTipo.PokemonBase base : PokemonUnTipo.PokemonBase.values()) {
             if (!pokemonesPorTipo.containsKey(base.tipo)) {
@@ -847,7 +837,39 @@ public void setModoJuego(ModoJuego modo) {
             "Error", 
             JOptionPane.ERROR_MESSAGE);
     }
-}
+}	
+   
+    
+    public void iniciarBatallaPvM(Map<String, Integer> itemsSeleccionados) {
+        // 1. Convertir el Map de selecciones a lista de strings como lo hace comienzoAgregarItems1
+        ArrayList<String> items = new ArrayList<>();
+        for (Map.Entry<String,Integer> i: itemsSeleccionados.entrySet()) {
+            for(int t = 0; t < i.getValue(); t++ ) {
+                items.add(i.getKey());
+            }
+        }
+        
+        // 2. Usar el método existente para crear los items
+        ArrayList<Item> itemsEscogidos = pokemonAplication.escojerItems(items);
+        
+        // 3. Crear el map de entrenador-items
+        Map<Entrenador,ArrayList<Item>> playerItems = new HashMap<>();
+        ArrayList<Entrenador> entrenadores = pokemonAplication.getEntrenadores();
+        
+        // 4. Buscar el entrenador del jugador y asignarle los items
+        for (Entrenador e : entrenadores) {
+            if (e.getName().equals(Entrenador1)) { // Usando Entrenador1 que ya existe en PokemonGUI
+                playerItems.put(e, itemsEscogidos);
+                break;
+            }
+        }
+        
+        // 5. Agregar los items usando el método existente
+        pokemonAplication.agregarItemsLucha(playerItems);
+        
+        // 6. Mostrar el panel de batalla
+        mostrarBattlePvMPanel();
+    }
     
     public List<String> getPokemonNames() {
         if (pokemonAplication == null) {

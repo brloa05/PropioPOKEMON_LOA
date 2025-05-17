@@ -27,7 +27,9 @@ public class MovimientoSelectionPvMPanel extends JPanel {
     private DefaultListModel<Movimiento> selectedModel;
     private JButton btnAddMovement;
     private JButton btnRemoveMovement;
-    private JButton btnConfirmarYSiguiente;
+    private JButton btnSiguiente;           // Nuevo botón
+    private JButton btnConfirmarMovimientos; // Nuevo botón
+    private Map<Pokemon, Boolean> pokemonConfirmado;
     private List<Pokemon> selectedPokemons = new ArrayList<>();
     private String tipoDeMaquinaSeleccionado = "Normal";
     
@@ -35,6 +37,16 @@ public class MovimientoSelectionPvMPanel extends JPanel {
         this.pokemonGUI = pokemonGUI;
         this.pokemones = pokemones;
         this.movimientosAsignados = new HashMap<>();
+        this.pokemonConfirmado = new HashMap<>();
+        
+        // Inicializar el estado de confirmación para los Pokémon que ya tienen 4 movimientos
+        for (Pokemon pokemon : pokemones) {
+            List<Movimiento> moves = movimientosAsignados.getOrDefault(pokemon, new ArrayList<>());
+            if (moves.size() == 4) {
+                pokemonConfirmado.put(pokemon, true);
+            }
+        }
+        
         prepareElements();
         prepareActions();
     }
@@ -75,11 +87,20 @@ public class MovimientoSelectionPvMPanel extends JPanel {
         add(centerPanel, BorderLayout.CENTER);
 
 
-        JPanel bottomPanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
-        btnConfirmarYSiguiente = new JButton("Confirmar y Continuar");
-        btnConfirmarYSiguiente.setEnabled(false); // Inicialmente deshabilitado
-        bottomPanel.add(btnConfirmarYSiguiente);
+        JPanel bottomPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 0));
+        
+        btnConfirmarMovimientos = new JButton("Confirmar Movimientos");
+        btnSiguiente = new JButton("Siguiente");
+        
+        // Configuración inicial de los botones
+        bottomPanel.add(btnConfirmarMovimientos);
+        bottomPanel.add(btnSiguiente);
         add(bottomPanel, BorderLayout.SOUTH);
+
+        // Cargar los movimientos iniciales y verificar el estado
+        loadPokemonMovements((Pokemon) cbPokemons.getSelectedItem());
+        verificarMovimientosCompletos();
+        verificarTodosLosPokemon();
         
         if (movimientosAsignados == null) {
             movimientosAsignados = new HashMap<>();
@@ -102,7 +123,17 @@ public class MovimientoSelectionPvMPanel extends JPanel {
             Pokemon selected = (Pokemon) cbPokemons.getSelectedItem();
             loadPokemonMovements(selected);
         });
-
+        
+        btnConfirmarMovimientos.addActionListener(e -> {
+            Pokemon currentPokemon = (Pokemon) cbPokemons.getSelectedItem();
+            if (currentPokemon != null && selectedModel.size() == 4) {
+                saveCurrentPokemonMovements(currentPokemon);
+                pokemonConfirmado.put(currentPokemon, true);
+                btnConfirmarMovimientos.setEnabled(false);
+                verificarTodosLosPokemon();
+            }
+        });
+        
         btnAddMovement.addActionListener(e -> {
             Movimiento selected = availableMovementsList.getSelectedValue();
             Pokemon currentPokemon = (Pokemon) cbPokemons.getSelectedItem();
@@ -113,8 +144,8 @@ public class MovimientoSelectionPvMPanel extends JPanel {
                 selectedModel.addElement(selected);
                 availableModel.removeElement(selected);
                 
-                // Guardar inmediatamente después de añadir
                 saveCurrentPokemonMovements(currentPokemon);
+                actualizarEstadoBotones(currentPokemon);
             }
         });
 
@@ -128,30 +159,38 @@ public class MovimientoSelectionPvMPanel extends JPanel {
                 availableModel.addElement(selected);
                 selectedModel.removeElement(selected);
                 
-                // Guardar inmediatamente después de remover
                 saveCurrentPokemonMovements(currentPokemon);
+                pokemonConfirmado.put(currentPokemon, false); // Desconfirmar al remover movimientos
+                actualizarEstadoBotones(currentPokemon);
             }
         });
+        
+        cbPokemons.addActionListener(e -> {
+            Pokemon selected = (Pokemon) cbPokemons.getSelectedItem();
+            loadPokemonMovements(selected);
+            actualizarEstadoBotones(selected);
+        });
 
-        btnConfirmarYSiguiente.addActionListener(e -> {
+        btnSiguiente.addActionListener(e -> {
             Pokemon current = (Pokemon) cbPokemons.getSelectedItem();
-            saveCurrentPokemonMovements(current);
-
+            
             System.out.println("\n=== Verificación Final ===");
             boolean allComplete = true;
             StringBuilder errorMessage = new StringBuilder("Estado de los Pokémon:\n");
             
             for (Pokemon p : pokemones) {
                 List<Movimiento> moves = movimientosAsignados.get(p);
+                Boolean isConfirmed = pokemonConfirmado.getOrDefault(p, false);
                 int moveCount = moves != null ? moves.size() : 0;
-                boolean hasEnoughMoves = moveCount >= 1;
                 
                 errorMessage.append(p.getNombre())
                            .append(": ")
                            .append(moveCount)
-                           .append(" movimientos\n");
+                           .append(" movimientos - ")
+                           .append(isConfirmed ? "Confirmado" : "No confirmado")
+                           .append("\n");
                 
-                allComplete &= hasEnoughMoves;
+                allComplete &= isConfirmed && moveCount == 4;
             }
             
             System.out.println(errorMessage.toString());
@@ -164,7 +203,7 @@ public class MovimientoSelectionPvMPanel extends JPanel {
                 pokemonGUI.setTipoMaquinaSeleccionada(tipoDeMaquinaSeleccionado);
             } else {
                 JOptionPane.showMessageDialog(this,
-                    "Falta asignar movimientos:\n" + errorMessage.toString(),
+                    "Debes confirmar 4 movimientos para cada Pokémon:\n" + errorMessage.toString(),
                     "Movimientos incompletos",
                     JOptionPane.WARNING_MESSAGE);
             }
@@ -177,17 +216,46 @@ public class MovimientoSelectionPvMPanel extends JPanel {
 		
 	}
     
-    private void verificarMovimientosCompletos() {
-        System.out.println("\n=== Verificación de Movimientos ===");
-        boolean allHaveMovements = true;
-        Map<String, Integer> movimientosPorPokemon = new HashMap<>();
+    private void actualizarEstadoBotones(Pokemon pokemon) {
+        if (pokemon != null) {
+            List<Movimiento> moves = movimientosAsignados.getOrDefault(pokemon, new ArrayList<>());
+            boolean tieneCuatroMovimientos = moves.size() == 4;
+            boolean estaConfirmado = pokemonConfirmado.getOrDefault(pokemon, false);
+            
+            // El botón de confirmar se habilita solo si tiene 4 movimientos y no está confirmado
+            btnConfirmarMovimientos.setEnabled(tieneCuatroMovimientos && !estaConfirmado);
+            
+            // Verificar si todos los Pokémon están confirmados
+            verificarTodosLosPokemon();
+        }
+    }
+    
+    private void verificarTodosLosPokemon() {
+        boolean todosConfirmados = true;
+        for (Pokemon p : pokemones) {
+            List<Movimiento> moves = movimientosAsignados.getOrDefault(p, new ArrayList<>());
+            boolean estaConfirmado = pokemonConfirmado.getOrDefault(p, false);
+            todosConfirmados &= (moves.size() == 4 && estaConfirmado);
+        }
+        
+        btnSiguiente.setEnabled(todosConfirmados);
+        System.out.println("Estado de botón Siguiente: " + todosConfirmados);
+        System.out.println("Pokémon confirmados: " + pokemonConfirmado);
+    }
 
+
+    
+    private void verificarMovimientosCompletos() {
+        boolean allHaveMovements = true;
+        
         for (Pokemon p : pokemones) {
             List<Movimiento> movements = movimientosAsignados.get(p);
             int numMovimientos = (movements != null ? movements.size() : 0);
-            boolean hasMovements = numMovimientos >= 1;
+            boolean hasMovements = numMovimientos == 4; // Cambiar a exactamente 4 movimientos
             
-            movimientosPorPokemon.put(p.getNombre(), numMovimientos);
+            if (hasMovements && !pokemonConfirmado.containsKey(p)) {
+                pokemonConfirmado.put(p, true);
+            }
             
             System.out.println(String.format(
                 "Pokémon: %-10s - Movimientos: %d - Tiene suficientes: %s",
@@ -203,8 +271,8 @@ public class MovimientoSelectionPvMPanel extends JPanel {
         movimientosAsignados.forEach((pokemon, moves) -> 
             System.out.println(pokemon.getNombre() + ": " + moves.size() + " movimientos"));
 
-        btnConfirmarYSiguiente.setEnabled(allHaveMovements);
-        System.out.println("Botón habilitado: " + allHaveMovements);
+        actualizarEstadoBotones((Pokemon) cbPokemons.getSelectedItem());
+        verificarTodosLosPokemon();
     }
 
     private void loadPokemonMovements(Pokemon pokemon) {
@@ -255,41 +323,48 @@ public class MovimientoSelectionPvMPanel extends JPanel {
 
         // Agregar los movimientos disponibles que no están asignados a otros
         allPossibleMovements.stream()
-            .filter(m -> !assignedToOthers.contains(m) || alreadyAssigned.contains(m))
-            .forEach(m -> {
-                if (!alreadyAssigned.contains(m)) {
-                    availableModel.addElement(m);
-                    System.out.println("Movimiento disponible añadido: " + m.getName());
-                }
-            });
+        .filter(m -> !assignedToOthers.contains(m) || alreadyAssigned.contains(m))
+        .forEach(m -> {
+            if (!alreadyAssigned.contains(m)) {
+                availableModel.addElement(m);
+                System.out.println("Movimiento disponible añadido: " + m.getName());
+            }
+        });
+
+        List<Movimiento> currentMoves = movimientosAsignados.getOrDefault(pokemon, new ArrayList<>());
+        if (currentMoves.size() == 4 && !pokemonConfirmado.containsKey(pokemon)) {
+            pokemonConfirmado.put(pokemon, true);
+        }
+        
+        actualizarEstadoBotones(pokemon);
+        verificarTodosLosPokemon();
 
         verificarMovimientosCompletos();
     }
 
-	private void saveCurrentPokemonMovements(Pokemon pokemon) {
-	    if (pokemon == null) {
-	        System.out.println("ERROR: Intentando guardar movimientos para un Pokémon null");
-	        return;
-	    }
+    private void saveCurrentPokemonMovements(Pokemon pokemon) {
+        if (pokemon == null) return;
 
-	    List<Movimiento> movements = new ArrayList<>();
-	    for (int i = 0; i < selectedModel.size(); i++) {
-	        movements.add(selectedModel.getElementAt(i));
-	    }
+        List<Movimiento> movements = new ArrayList<>();
+        for (int i = 0; i < selectedModel.size(); i++) {
+            movements.add(selectedModel.getElementAt(i));
+        }
 
-	    System.out.println("\n=== Guardando movimientos para " + pokemon.getNombre() + " ===");
-	    System.out.println("Número de movimientos a guardar: " + movements.size());
-	    movements.forEach(m -> System.out.println("- " + m.getName()));
+        System.out.println("\n=== Guardando movimientos para " + pokemon.getNombre() + " ===");
+        System.out.println("Número de movimientos a guardar: " + movements.size());
+        movements.forEach(m -> System.out.println("- " + m.getName()));
 
-	    movimientosAsignados.put(pokemon, new ArrayList<>(movements));
-
-	    // Verificar que los movimientos se guardaron correctamente
-	    List<Movimiento> savedMovements = movimientosAsignados.get(pokemon);
-	    System.out.println("Movimientos guardados efectivamente: " + 
-	        (savedMovements != null ? savedMovements.size() : 0));
-
-	    verificarMovimientosCompletos();
-	}
+        movimientosAsignados.put(pokemon, new ArrayList<>(movements));
+        
+        // Si tiene exactamente 4 movimientos, marcarlo como confirmado automáticamente
+        if (movements.size() == 4) {
+            pokemonConfirmado.put(pokemon, true);
+        } else {
+            pokemonConfirmado.put(pokemon, false);
+        }
+        
+        actualizarEstadoBotones(pokemon);
+    }
     
     public void showError(String mensaje) {
         JOptionPane.showMessageDialog(this, mensaje, "Error", JOptionPane.ERROR_MESSAGE);

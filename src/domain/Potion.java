@@ -11,6 +11,9 @@ public class Potion extends Item{
 	}
 
 	
+	
+
+
 	@Override
 	public int getRecuperacion() {
 		return recuperacion;

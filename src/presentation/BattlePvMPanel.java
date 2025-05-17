@@ -1,9 +1,6 @@
 package presentation;
 
 import domain.*;
-import domain.Movimiento.ObjetivoEfecto;
-import domain.Movimiento.TipoEfecto;
-import domain.Pokemon.Tipo;
 
 import javax.swing.*;
 import java.awt.*;
@@ -38,28 +35,24 @@ public class BattlePvMPanel extends JPanel {
     private JTextArea battleLog;
     private CardLayout actionCardLayout;
     private JPanel actionCards;
-    private static final Map<String, String> POKEMON_IMAGE_MAP = createPokemonImageMap();
+    private JPanel mainPanel; // Agregar esta variable de clase
 
- // En el constructor de BattlePvMPanel
+    // Modificar el constructor para inicializar los Pokémon
     public BattlePvMPanel(PokemonGUI pokemonGUI, Entrenador jugador2, EntrenadorMachine maquina) {
         this.pokemonGUI = pokemonGUI;
         this.jugador = jugador2;
         this.maquina = maquina;
-
-        if (jugador2 != null && !jugador2.getPokemones().isEmpty()) {
-            this.pokemonJugador = jugador2.getPokemones().get(0);
-        } else {
-            throw new IllegalStateException("El jugador debe tener al menos un Pokémon");
-        }
-        
-        if (maquina != null && !maquina.getPokemones().isEmpty()) {
-            this.pokemonMaquina = maquina.getPokemones().get(0);
-        } else {
-            throw new IllegalStateException("La máquina debe tener al menos un Pokémon");
-        }
-        
+        this.pokemonJugador = jugador2.getPokemones().get(0);
+        this.pokemonMaquina = maquina.getPokemones().get(0);
         prepareElements();
         prepareActions();
+    }
+
+    // En su lugar, agregar un método para inicializar los Pokémon cuando sea el momento
+    public void initializePokemon(Pokemon pokemonJugador, Pokemon pokemonMaquina) {
+        this.pokemonJugador = pokemonJugador;
+        this.pokemonMaquina = pokemonMaquina;
+        updatePokemonDisplay(); // Actualizar la interfaz con los Pokémon seleccionados
     }
     
     private static Map<String, String> createPokemonImageMap() {
@@ -85,197 +78,176 @@ public class BattlePvMPanel extends JPanel {
         return map;
     }
 
-    private void cargarDatosDePrueba() {
-        this.jugador = new EntrenadorPlayer("Jugador", "Player");
-        this.maquina = new ExpertTrainer("Machine", "Machine");
-        
-        // Configurar movimientos de prueba para el jugador
-        List<Movimiento> movimientosJugador = new ArrayList<>();
-        movimientosJugador.add(new Fisico("Lanzallamas", 90, 100, 15, 
-            "Puede quemar (10%)", TipoEfecto.QUEMAR, ObjetivoEfecto.OBJETIVO, 0));
-        movimientosJugador.add(new Especial("Giro Fuego", 35, 85, 15, 
-            "Puede quemar (10%)", TipoEfecto.QUEMAR, ObjetivoEfecto.OBJETIVO, 0));
-        
-        // Configurar pokémon de prueba para el jugador
-        List<Pokemon> equipoJugador = new ArrayList<>();
-        equipoJugador.add(new PokemonUnTipo("CHARIZARD", 50, movimientosJugador));
-        this.jugador.setPokemones(equipoJugador);
-
-        // Crear el mapa de pokémon por tipo para la máquina
-        Map<Pokemon.Tipo, List<Pokemon>> pokemonesPorTipo = new HashMap<>();
-        
-        // Inicializar las listas para cada tipo
-        for (Pokemon.Tipo tipo : Pokemon.Tipo.values()) {
-            pokemonesPorTipo.put(tipo, new ArrayList<>());
-        }
-        
-        // Agregar pokémon de un tipo
-        for (PokemonUnTipo.PokemonBase base : PokemonUnTipo.PokemonBase.values()) {
-            Pokemon pokemon = new PokemonUnTipo(base.name(), base.stats[0], new ArrayList<>());
-            pokemonesPorTipo.get(base.tipo).add(pokemon);
-        }
-        
-        // Agregar pokémon de dos tipos
-        for (PokemonDosTipos.PokemonBase base : PokemonDosTipos.PokemonBase.values()) {
-            Pokemon pokemon = new PokemonDosTipos(base.name(), base.stats[0], new ArrayList<>());
-            pokemonesPorTipo.get(base.tipo1).add(pokemon);
-        }
-        
-        // Dejar que la máquina escoja sus pokémon
-        this.maquina.escogerPokemonesTipo(pokemonesPorTipo);
-
-        // Agregar movimientos a los pokémon de la máquina
-        Map<Pokemon.Tipo, List<Movimiento>> movimientosPorTipo = new HashMap<>();
-        for (Pokemon.Tipo tipo : Pokemon.Tipo.values()) {
-            movimientosPorTipo.put(tipo, Movimiento.getMovimientosPorTipo(tipo));
-        }
-        
-        for (Pokemon pokemon : this.maquina.getPokemones()) {
-            this.maquina.agregarMovimientos(pokemon, movimientosPorTipo, new ArrayList<>());
-        }
-    }
-
     private void prepareElements() {
-    	
-    	moveButtons = new JButton[4];
-        for (int i = 0; i < moveButtons.length; i++) {
-            moveButtons[i] = new JButton();
-            moveButtons[i].setPreferredSize(new Dimension(200, 50));
-            moveButtons[i].setFont(new Font("Arial", Font.PLAIN, 14));
-            moveButtons[i].setOpaque(true);
-            moveButtons[i].setBackground(new Color(51, 51, 51));
-            moveButtons[i].setForeground(Color.WHITE);
-            moveButtons[i].setBorder(BorderFactory.createLineBorder(Color.GRAY));
-        }
-    	
-        setLayout(new BorderLayout());
-        
-        // Cargar imágenes
-        try {
-            URL backgroundUrl = getClass().getResource("/resource/Desktop - 4.gif");
-            if (backgroundUrl != null) {
-                backgroundImage = ImageIO.read(backgroundUrl);
-            } else {
-                System.out.println("No se pudo encontrar la imagen de fondo");
-                createBackupImages();
+    setLayout(new BorderLayout());
+    
+    // Inicializar el mainPanel con fondo
+    mainPanel = new JPanel(new BorderLayout()) {
+        @Override
+        protected void paintComponent(Graphics g) {
+            super.paintComponent(g);
+            if (backgroundImage != null) {
+                g.drawImage(backgroundImage, 0, 0, getWidth(), getHeight(), this);
             }
-            
-            playerPokemonImage = loadPokemonImage(pokemonJugador.getNombre(), true);
-            enemyPokemonImage = loadPokemonImage(pokemonMaquina.getNombre(), false);
-        } catch (IOException e) {
-            System.out.println("Error al cargar imagen: " + e.getMessage());
+        }
+    };
+    mainPanel.setOpaque(false);
+    
+    // Cargar imagen de fondo
+    try {
+        URL backgroundUrl = getClass().getResource("/resource/battle_background.gif");
+        if (backgroundUrl != null) {
+            backgroundImage = ImageIO.read(backgroundUrl);
+        } else {
+            System.out.println("No se pudo encontrar la imagen de fondo");
             createBackupImages();
         }
-
-        // Panel principal con fondo
-        JPanel mainPanel = new JPanel(new BorderLayout()) {
-            @Override
-            protected void paintComponent(Graphics g) {
-                super.paintComponent(g);
-                if (backgroundImage != null) {
-                    g.drawImage(backgroundImage, 0, 0, getWidth(), getHeight(), this);
-                }
-            }
-        };
-        mainPanel.setOpaque(false);
-
-        // Panel de batalla
-        JPanel battlePanel = new JPanel(new GridLayout(2, 2, 10, 10));
-        battlePanel.setOpaque(false);
-        battlePanel.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
-
-        // Panel de la máquina
-        JPanel machineInfoPanel = createPokemonInfoPanel(pokemonMaquina, false);
-        battlePanel.add(machineInfoPanel);
-        battlePanel.add(new JPanel() {{setOpaque(false);}});
-
-        // Panel del jugador
-        JPanel playerInfoPanel = createPokemonInfoPanel(pokemonJugador, true);
-        battlePanel.add(new JPanel() {{setOpaque(false);}});
-        battlePanel.add(playerInfoPanel);
-
-        // Panel de acciones
-        JPanel bottomPanel = new JPanel(new BorderLayout());
-        bottomPanel.setBackground(Color.BLACK);
-        bottomPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
-
-        actionCardLayout = new CardLayout();
-        actionCards = new JPanel(actionCardLayout);
-        actionCards.setOpaque(false);
-
-        // Botones principales
-        JPanel mainButtonsPanel = new JPanel(new GridLayout(1, 3, 5, 0));
-        mainButtonsPanel.setOpaque(false);
-        
-        JButton btnFight = createStyledButton("LUCHA", new Color(0, 122, 255));
-        JButton btnItems = createStyledButton("ITEMS", new Color(255, 204, 0));
-        JButton btnPokemon = createStyledButton("POKEMON", new Color(255, 149, 0));
-
-        mainButtonsPanel.add(btnFight);
-        mainButtonsPanel.add(btnItems);
-        mainButtonsPanel.add(btnPokemon);
-
-        // Panel de movimientos
-        JPanel movesPanel = new JPanel(new GridLayout(3, 2, 5, 5));
-        movesPanel.setOpaque(false);
-
-        // Obtener movimientos del pokémon actual
-        Map<Pokemon, List<Movimiento>> pokemonMoves = pokemonGUI.getPokemonMovements();
-        List<Movimiento> movimientos = new ArrayList<>();
-
-        // Verificar si hay movimientos asignados para el Pokémon actual
-        if (pokemonJugador != null) {
-            System.out.println("Cargando movimientos para: " + pokemonJugador.getNombre());
-            movimientos = pokemonMoves.getOrDefault(pokemonJugador, new ArrayList<>());
-            System.out.println("Movimientos encontrados: " + movimientos.size());
-            
-            // Imprimir los movimientos para depuración
-            for (Movimiento mov : movimientos) {
-                System.out.println("- " + mov.getName());
-            }
-        }
-
-        // Crear los botones de movimiento
-        for (int i = 0; i < 4; i++) {
-            if (i < movimientos.size()) {
-                Movimiento mov = movimientos.get(i);
-                moveButtons[i].setText(mov.getName());
-                moveButtons[i].setEnabled(true);
-                
-                // Asignar el color del botón según el tipo del movimiento
-                moveButtons[i].setBackground(getColorForMove(mov));
-            } else {
-                moveButtons[i].setText("-");
-                moveButtons[i].setEnabled(false);
-                moveButtons[i].setBackground(new Color(51, 51, 51));
-            }
-            movesPanel.add(moveButtons[i]);
-        }
-
-        // Botón de retorno
-        JButton btnReturn = createStyledButton("Volver", new Color(200, 0, 0));
-        btnReturn.addActionListener(e -> actionCardLayout.show(actionCards, "MAIN_BUTTONS"));
-        movesPanel.add(btnReturn);
-        movesPanel.add(new JPanel() {{setOpaque(false);}});
-
-        // Agregar paneles al sistema de cartas
-        actionCards.add(mainButtonsPanel, "MAIN_BUTTONS");
-        actionCards.add(movesPanel, "MOVES");
-
-        // Configurar acciones de botones principales
-        btnFight.addActionListener(e -> actionCardLayout.show(actionCards, "MOVES"));
-        btnItems.addActionListener(e -> handleItems());
-        btnPokemon.addActionListener(e -> handlePokemonChange());
-
-        bottomPanel.add(actionCards, BorderLayout.CENTER);
-
-        // Agregar todo al panel principal
-        mainPanel.add(battlePanel, BorderLayout.CENTER);
-        mainPanel.add(bottomPanel, BorderLayout.SOUTH);
-
-        add(mainPanel);
-        mainPanel.setPreferredSize(new Dimension(800, 600));
+    } catch (IOException e) {
+        System.out.println("Error al cargar imagen: " + e.getMessage());
+        createBackupImages();
     }
+
+    // Panel de batalla usando GridBagLayout para mejor control del posicionamiento
+    JPanel battlePanel = new JPanel(new GridBagLayout());
+    battlePanel.setOpaque(false);
+    GridBagConstraints gbc = new GridBagConstraints();
+
+    // Configuración del pokémon enemigo (área azul, arriba a la derecha)
+    gbc.gridx = 1;
+    gbc.gridy = 0;
+    gbc.weightx = 0.5;
+    gbc.weighty = 0.5;
+    gbc.anchor = GridBagConstraints.NORTHEAST;
+    gbc.insets = new Insets(20, 0, 0, 20); // Margen superior y derecho
+    JPanel enemyPanel = createPokemonInfoPanel(pokemonMaquina, false);
+    enemyPanel.setBackground(new Color(0, 0, 255, 50)); // Fondo azul semi-transparente
+    enemyPanel.setOpaque(true);
+    battlePanel.add(enemyPanel, gbc);
+
+    // Configuración del pokémon del jugador (área verde, abajo a la izquierda)
+    gbc.gridx = 0;
+    gbc.gridy = 1;
+    gbc.anchor = GridBagConstraints.SOUTHWEST;
+    gbc.insets = new Insets(0, 20, 20, 0); // Margen inferior e izquierdo
+    JPanel playerPanel = createPokemonInfoPanel(pokemonJugador, true);
+    playerPanel.setBackground(new Color(0, 255, 0, 50)); // Fondo verde semi-transparente
+    playerPanel.setOpaque(true);
+    battlePanel.add(playerPanel, gbc);
+
+    // Panel de acciones (área negra inferior)
+    JPanel bottomPanel = new JPanel(new BorderLayout());
+    bottomPanel.setBackground(Color.BLACK);
+    bottomPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+
+    // Sistema de cartas para los menús
+    actionCardLayout = new CardLayout();
+    actionCards = new JPanel(actionCardLayout);
+    actionCards.setOpaque(false);
+
+    // Panel de botones principales
+    JPanel mainButtonsPanel = new JPanel(new GridLayout(1, 3, 5, 0));
+    mainButtonsPanel.setOpaque(false);
+    
+    // Crear botones con sus colores específicos
+    JButton btnFight = createStyledButton("LUCHA", new Color(0, 122, 255));
+    JButton btnItems = createStyledButton("ITEMS", new Color(255, 204, 0));
+    JButton btnPokemon = createStyledButton("POKEMON", new Color(255, 149, 0));
+
+    mainButtonsPanel.add(btnFight);
+    mainButtonsPanel.add(btnItems);
+    mainButtonsPanel.add(btnPokemon);
+
+    // Panel de movimientos
+    JPanel movesPanel = new JPanel(new GridLayout(2, 2, 5, 5));
+    movesPanel.setOpaque(false);
+    
+    // Inicializar los botones de movimiento
+    moveButtons = new JButton[4];
+    Map<Pokemon, List<Movimiento>> pokemonMoves = pokemonGUI.getPokemonMovements();
+    List<Movimiento> movimientos = pokemonMoves != null ? pokemonMoves.get(pokemonJugador) : new ArrayList<>();
+
+    for (int i = 0; i < 4; i++) {
+        if (i < movimientos.size()) {
+            Movimiento mov = movimientos.get(i);
+            moveButtons[i] = createStyledButton(mov.getName(), getColorForMove(mov));
+            moveButtons[i].setActionCommand("MOVE_" + i);
+        } else {
+            moveButtons[i] = createStyledButton("-", Color.GRAY);
+            moveButtons[i].setEnabled(false);
+        }
+        movesPanel.add(moveButtons[i]);
+    }
+
+    // Botón de retorno para el panel de movimientos
+    JButton btnReturn = createStyledButton("Volver", new Color(200, 0, 0));
+    btnReturn.addActionListener(e -> actionCardLayout.show(actionCards, "MAIN_BUTTONS"));
+    movesPanel.add(btnReturn);
+
+    // Configurar acciones de los botones principales
+    btnFight.addActionListener(e -> actionCardLayout.show(actionCards, "MOVES"));
+    btnItems.addActionListener(e -> handleItems());
+    btnPokemon.addActionListener(e -> handlePokemonChange());
+
+    // Agregar los paneles al sistema de cartas
+    actionCards.add(mainButtonsPanel, "MAIN_BUTTONS");
+    actionCards.add(movesPanel, "MOVES");
+
+    // Mostrar el panel de botones principales por defecto
+    actionCardLayout.show(actionCards, "MAIN_BUTTONS");
+
+    // Agregar el panel de acciones al panel inferior
+    bottomPanel.add(actionCards, BorderLayout.CENTER);
+
+    // Agregar todos los paneles al panel principal
+    mainPanel.add(battlePanel, BorderLayout.CENTER);
+    mainPanel.add(bottomPanel, BorderLayout.SOUTH);
+
+    // Agregar el panel principal al panel de batalla
+    add(mainPanel);
+
+    // Establecer el tamaño preferido
+    setPreferredSize(new Dimension(800, 600));
+
+    // Configurar los listeners para los botones de movimiento
+    for (int i = 0; i < moveButtons.length; i++) {
+        if (moveButtons[i].isEnabled()) {
+            final int moveIndex = i;
+            moveButtons[i].addActionListener(e -> {
+                executeMove(moveIndex);
+                actionCardLayout.show(actionCards, "MAIN_BUTTONS");
+            });
+        }
+    }
+}
+
+    private JPanel createEmptyInfoPanel() {
+        JPanel panel = new JPanel();
+        panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
+        panel.setOpaque(false);
+        
+        // Agregar placeholder para nombre y barra de salud
+        JLabel nameLabel = new JLabel("...");
+        nameLabel.setForeground(Color.WHITE);
+        nameLabel.setFont(new Font("Arial", Font.BOLD, 16));
+        
+        JProgressBar healthBar = new JProgressBar(0, 100);
+        healthBar.setValue(0);
+        healthBar.setString("0/0");
+        healthBar.setStringPainted(true);
+        
+        JLabel stateLabel = new JLabel("...");
+        stateLabel.setForeground(Color.WHITE);
+
+        JPanel infoPanel = new JPanel(new GridLayout(3, 1, 2, 2));
+        infoPanel.setOpaque(false);
+        infoPanel.add(nameLabel);
+        infoPanel.add(healthBar);
+        infoPanel.add(stateLabel);
+
+        panel.add(infoPanel);
+        return panel;
+    }
+
     
     private Color getColorForMove(Movimiento movimiento) {
         // Obtener el tipo del movimiento
@@ -318,12 +290,9 @@ public class BattlePvMPanel extends JPanel {
             return createPlaceholderImage();
         }
 
-        String imagePath = POKEMON_IMAGE_MAP.get(pokemonName.toUpperCase());
-        if (imagePath == null) {
-            System.err.println("No se encontró ruta de imagen para: " + pokemonName);
-            return createPlaceholderImage();
-        }
-
+        String suffix = isPlayer ? "-Usuario.gif" : "-Objetivo.gif";
+        String imagePath = "/resource/" + pokemonName.toLowerCase() + suffix;
+        
         try {
             URL imageUrl = getClass().getResource(imagePath);
             if (imageUrl == null) {
@@ -450,22 +419,82 @@ public class BattlePvMPanel extends JPanel {
             }
         }
     }
+    
+    private void updateActionPanel() {
+        if (actionCards != null) {
+            actionCards.removeAll();
+            
+            // Panel de botones principales
+            JPanel mainButtonsPanel = new JPanel(new GridLayout(1, 3, 5, 0));
+            mainButtonsPanel.setOpaque(false);
+            
+            JButton btnFight = createStyledButton("LUCHA", new Color(0, 122, 255));
+            JButton btnItems = createStyledButton("ITEMS", new Color(255, 204, 0));
+            JButton btnPokemon = createStyledButton("POKEMON", new Color(255, 149, 0));
+            
+            mainButtonsPanel.add(btnFight);
+            mainButtonsPanel.add(btnItems);
+            mainButtonsPanel.add(btnPokemon);
+            
+            // Panel de movimientos
+            JPanel movesPanel = new JPanel(new GridLayout(2, 2, 5, 5));
+            movesPanel.setOpaque(false);
+            
+            Map<Pokemon, List<Movimiento>> pokemonMoves = pokemonGUI.getPokemonMovements();
+            List<Movimiento> movimientos = pokemonMoves.get(pokemonJugador);
+            
+            for (int i = 0; i < 4; i++) {
+                if (movimientos != null && i < movimientos.size()) {
+                    moveButtons[i] = createStyledButton(movimientos.get(i).getName(), 
+                        getColorForMove(movimientos.get(i)));
+                    final int moveIndex = i;
+                    moveButtons[i].addActionListener(e -> {
+                        executeMove(moveIndex);
+                        actionCardLayout.show(actionCards, "MAIN_BUTTONS");
+                    });
+                } else {
+                    moveButtons[i] = createStyledButton("-", Color.GRAY);
+                    moveButtons[i].setEnabled(false);
+                }
+                movesPanel.add(moveButtons[i]);
+            }
+            
+            actionCards.add(mainButtonsPanel, "MAIN_BUTTONS");
+            actionCards.add(movesPanel, "MOVES");
+            
+            // Configurar acciones de botones
+            btnFight.addActionListener(e -> actionCardLayout.show(actionCards, "MOVES"));
+            btnItems.addActionListener(e -> handleItems());
+            btnPokemon.addActionListener(e -> handlePokemonChange());
+            
+            actionCardLayout.show(actionCards, "MAIN_BUTTONS");
+        }
+    }
+
 
     private void handleItems() {
-        List<Item> items = jugador.getItems();
-        if (items.isEmpty()) {
-            JOptionPane.showMessageDialog(this, "No tienes items disponibles", "Items", JOptionPane.INFORMATION_MESSAGE);
+    	List<Item> items = jugador.getItems();
+        if (items == null || items.isEmpty()) {
+            JOptionPane.showMessageDialog(this, 
+                "No tienes objetos disponibles", 
+                "Objetos", 
+                JOptionPane.INFORMATION_MESSAGE);
             return;
+        }
+        
+        System.out.println("Items disponibles: " + items.size());
+        for (Item item : items) {
+            System.out.println(" - " + item.getId());
         }
 
         String[] itemIds = items.stream()
-            .map(Item::getId)  // Cambiado para usar getId() que es el método correcto
-            .toArray(String[]::new);
+                .map(Item::getId)
+                .toArray(String[]::new);
 
         String selectedItemId = (String) JOptionPane.showInputDialog(
             this,
-            "Selecciona un item para usar:",
-            "Usar Item",
+            "Selecciona un objeto para usar:",
+            "Usar Objeto",
             JOptionPane.QUESTION_MESSAGE,
             null,
             itemIds,
@@ -474,23 +503,25 @@ public class BattlePvMPanel extends JPanel {
 
         if (selectedItemId != null) {
             Item item = items.stream()
-                .filter(i -> i.getId().equals(selectedItemId))  // Cambiado para usar getId()
+                .filter(i -> i.getId().equals(selectedItemId))
                 .findFirst()
                 .orElse(null);
 
             if (item != null) {
                 aplicarItem(item, pokemonJugador);
                 updateHealthBars();
+                // Después de usar el item, es el turno de la máquina
                 realizarTurnoMaquina();
             }
         }
     }
 
     private void aplicarItem(Item item, Pokemon pokemon) {
-        // Usar el método efectoItem que es el que aplica el efecto del item
+        // Usar el método de efecto del item
         String resultado = item.efectoItem(pokemon);
         if (!resultado.equals("No efectuo")) {
             jugador.getItems().remove(item);
+            updateHealthBars(); // Actualizar las barras de vida para mostrar el efecto de curación
         }
     }
 
@@ -543,11 +574,8 @@ public class BattlePvMPanel extends JPanel {
         if (moveIndex < movimientos.size()) {
             Movimiento movimiento = movimientos.get(moveIndex);
             
-            // Obtener el tipo del movimiento desde el PokemonGUI o PokemonApplication
-            Pokemon.Tipo tipoMovimiento = null;
             for (Pokemon.Tipo tipo : Pokemon.Tipo.values()) {
                 if (pokemonGUI.getPokemonAplication().getMovimientosPorTipo(tipo).contains(movimiento)) {
-                    tipoMovimiento = tipo;
                     break;
                 }
             }
@@ -576,26 +604,82 @@ public class BattlePvMPanel extends JPanel {
     }
 
     private void realizarTurnoMaquina() {
-        // Obtener los movimientos del pokémon de la máquina desde el mapa de movimientos
-        Map<Pokemon, List<Movimiento>> pokemonMoves = pokemonGUI.getPokemonMovements();
-        List<Movimiento> movimientosDisponibles = pokemonMoves.get(pokemonMaquina);
+    // Primero verificamos si debemos usar un item (cuando la vida está baja)
+    if (pokemonMaquina.getSalud() < pokemonMaquina.getSaludMaxima() * 0.3) {
+        // Obtener los items que la máquina tiene disponibles
+        List<Item> itemsMaquina = maquina.getItems();
         
-        if (movimientosDisponibles != null && !movimientosDisponibles.isEmpty()) {
-            // Elegir un movimiento aleatorio
-            int index = (int)(Math.random() * movimientosDisponibles.size());
-            Movimiento movimiento = movimientosDisponibles.get(index);
+        // Intentar encontrar una poción (cualquier item que no sea Revive)
+        Item itemParaUsar = itemsMaquina.stream()
+            .filter(item -> !item.esRevive())
+            .findFirst()
+            .orElse(null);
+
+        if (itemParaUsar != null) {
+            // Mostrar mensaje sobre el uso del item
+            JOptionPane.showMessageDialog(this, 
+                "La máquina usa " + itemParaUsar.getId() + " en " + pokemonMaquina.getNombre(),
+                "Uso de Item",
+                JOptionPane.INFORMATION_MESSAGE);
             
-            // Realizar el ataque
-            int damage = calculaDaño(movimiento, pokemonMaquina, pokemonJugador);
-            pokemonJugador.recibirDanio(damage);
-            
-            updateHealthBars();
-            
-            if (pokemonJugador.estaDebilitado()) {
-                handlePokemonFainted(pokemonJugador);
+            // Aplicar el efecto del item y actualizar
+            String resultado = itemParaUsar.efectoItem(pokemonMaquina);
+            if (!resultado.equals("No efectuo")) {
+                itemsMaquina.remove(itemParaUsar);
+                updateHealthBars();
+                return; // Terminar el turno después de usar el item
             }
         }
     }
+    // Si el Pokémon está debilitado y tenemos un Revive, usarlo
+    else if (pokemonMaquina.estaDebilitado()) {
+        List<Item> itemsMaquina = maquina.getItems();
+        Item revive = itemsMaquina.stream()
+            .filter(Item::esRevive)
+            .findFirst()
+            .orElse(null);
+
+        if (revive != null) {
+            JOptionPane.showMessageDialog(this, 
+                "La máquina usa " + revive.getId() + " en " + pokemonMaquina.getNombre(),
+                "Uso de Revive",
+                JOptionPane.INFORMATION_MESSAGE);
+            
+            String resultado = revive.efectoItem(pokemonMaquina);
+            if (!resultado.equals("No efectuo")) {
+                itemsMaquina.remove(revive);
+                updateHealthBars();
+                return;
+            }
+        }
+    }
+
+    // Si no usamos item o el Pokémon no necesita curación, realizar ataque
+    Map<Pokemon, List<Movimiento>> pokemonMoves = pokemonGUI.getPokemonMovements();
+    List<Movimiento> movimientosDisponibles = pokemonMoves.get(pokemonMaquina);
+    
+    if (movimientosDisponibles != null && !movimientosDisponibles.isEmpty()) {
+        // Elegir un movimiento aleatorio
+        int index = (int)(Math.random() * movimientosDisponibles.size());
+        Movimiento movimiento = movimientosDisponibles.get(index);
+        
+        // Mostrar el movimiento usado
+        JOptionPane.showMessageDialog(this,
+            pokemonMaquina.getNombre() + " usa " + movimiento.getName() + "!",
+            "Ataque de la Máquina",
+            JOptionPane.INFORMATION_MESSAGE);
+        
+        // Realizar el ataque
+        int damage = calculaDaño(movimiento, pokemonMaquina, pokemonJugador);
+        pokemonJugador.recibirDanio(damage);
+        
+        updateHealthBars();
+        
+        if (pokemonJugador.estaDebilitado()) {
+            handlePokemonFainted(pokemonJugador);
+        }
+    }
+}
     
 
     private void handlePokemonFainted(Pokemon pokemon) {
@@ -680,4 +764,18 @@ public class BattlePvMPanel extends JPanel {
         revalidate();
         repaint();
     }
+    
+    private void asegurarMainPanelInicializado() {
+        JPanel mainPanel = null;
+		if (mainPanel == null) {
+            mainPanel = new javax.swing.JPanel();
+            mainPanel.setLayout(new java.awt.BorderLayout()); // O el layout que uses normalmente
+        }
+    }
+    
+    public void prepararElementosSeguro() {
+        asegurarMainPanelInicializado();
+        prepareElements(); // Llama al método ya existente
+    }
+    
 }
