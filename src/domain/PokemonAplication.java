@@ -21,16 +21,19 @@ public class PokemonAplication {
 	private static final int MAX_SAME_TYPE = 2;
 	
 	
+	
 	public PokemonAplication() {
 			this.entrenadores =  new ArrayList<>();
 			this.pokemones = new ArrayList<>();
 			this.movimientosPorTipo = new HashMap<>();
+			this.items =  new ArrayList<>();
 	        inicializarMovimientos();
 	        inicializarPokemonesDisponibles();
 	        inicializarItems();
 		
 	}
 	private void inicializarItems() {
+		
 		items.add(new Potion("Potion"));
 		items.add(new SuperPotion("SuperPotion"));
 		items.add(new HyperPotion("HyperPotion"));
@@ -315,9 +318,9 @@ public class PokemonAplication {
 
 	public void agregarObjetosSupervivencia() {
 		for (Entrenador e: this.entrenadores) {
-			e.itemsAleatorios();
-			e.pokemonesAleatorios();
-			e.movimientosAleatorios();
+			e.itemsAleatorios(this.items);
+			e.pokemonesAleatorios(this.items);
+			e.movimientosAleatorios(this.items);
 		}
 	}
 	

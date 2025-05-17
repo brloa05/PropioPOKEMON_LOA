@@ -93,15 +93,15 @@ public abstract class Entrenador {
 	    return pokemones;
 	}
     
-    public void itemsAleatorios() {
+    public void itemsAleatorios(ArrayList<Item> items) {
 		
 	}
     
-    public void pokemonesAleatorios() {
+    public void pokemonesAleatorios(ArrayList<Item> items) {
     	
     	
     }
-    public void movimientosAleatorios() {
+    public void movimientosAleatorios(ArrayList<Item> items) {
     
     }
     
