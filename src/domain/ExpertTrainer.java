@@ -11,7 +11,8 @@ public class ExpertTrainer extends EntrenadorMachine{
 	public ExpertTrainer(String name, String tipo ) {
 		super(name, tipo);
 	}
-	
+	//items
+		//
 	@Override
 	public void escogerPokemonesTipo(Map<Tipo, List<Pokemon>> pokemonesMachine) {
 	    ArrayList<Pokemon> todos = new ArrayList<>();

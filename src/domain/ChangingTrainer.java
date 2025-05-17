@@ -22,6 +22,9 @@ public class ChangingTrainer extends EntrenadorMachine {
 	    
 	}
 	
+	//items
+		//
+	
 	@Override
 	public void escogerItemsTipo(ArrayList<Item> items) {
 	    

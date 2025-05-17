@@ -39,6 +39,8 @@ public class AttackingTrainer extends EntrenadorMachine{
 	    this.pokemones = pokemonesElegidos;
 	}
 	
+	//items
+	//
 	@Override
 	public void escogerItemsTipo(ArrayList<Item> items) {
 	    

@@ -10,7 +10,7 @@ import java.util.Set;
 import domain.Pokemon.Tipo;
 
 public abstract class Entrenador {
-    protected String name;  // Quita el static aquí
+    protected String name;  
     protected ArrayList<Pokemon> pokemones;
     protected ArrayList<Item> items;
     protected String tipo;
@@ -105,6 +105,8 @@ public abstract class Entrenador {
     }
     
     public abstract void escogerPokemonesTipo(Map<Tipo,List<Pokemon>> pokemonesMachine);
+    //items
+  	//
     public abstract void escogerItemsTipo(ArrayList<Item> items);
     public abstract void agregarMovimientos(Pokemon pokemon,  Map<Tipo, List<Movimiento>> movimientosPorTipo, List<Movimiento> movimientosIsPlayer);
 }
