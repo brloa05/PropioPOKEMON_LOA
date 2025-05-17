@@ -111,16 +111,27 @@ public class MenuModoPanel extends JPanel {
     public void prepareAccionesModo() {
         btnModoNormal.addActionListener(e -> {
             pokemonGUI.mostrarMenuModoVs();
+            pokemonGUI.aplicationModo("Normal");
         });
         
         btnModoSupervivencia.addActionListener(e -> {
             JOptionPane.showMessageDialog(pokemonGUI, "Iniciando Modo Supervivencia...");
+            pokemonGUI.aplicationModo("Supervivencia");
+            
         });
         
         btnRegresar.addActionListener(e -> {
             pokemonGUI.resetearPokemonAplication();
             pokemonGUI.mostrarMenuPrincipal();
         });
+    }
+    
+    private void crearObjetosSupervivencia() {
+    	pokemonGUI.comienzoAgregarEntrenadoresPorTipo1("Jugador1","PlayerTrainer", "player1");
+    	pokemonGUI.comienzoAgregarEntrenadoresPorTipo1("Jugador2","PlayerTrainer", "player2");
+    	pokemonGUI.agregarEntrenadores();
+    	pokemonGUI.comienzoAgregarObjetosSurvival();
+    	
     }
 
     @Override

@@ -1,12 +1,20 @@
 package domain;
 
 public class Potion extends Item{
-	public Potion(String id, int recuperacion) {
-		super(id, recuperacion);
+	
+	private static final String  name = "Potion";
+	private static final int recuperacion =  20;
+	
+	public Potion(String id) {
+		super(id);
 		// TODO Auto-generated constructor stub
 	}
 
-	private static final String  name = "Potion";
+	
+	@Override
+	public int getRecuperacion() {
+		return recuperacion;
+	}
 
 	@Override
 	public String efectoItem(Pokemon pokemon) {
@@ -18,7 +26,7 @@ public class Potion extends Item{
 					pokemon.setSalud(pokemon.getSalud() + (recuperacion - Math.abs(recuperacion-Math.abs(pokemon.getSalud() - pokemon.getSaludMaxima()))));
 					return id;
 				} else {
-					pokemon.setSalud(pokemon.getSalud() + 20);
+					pokemon.setSalud(pokemon.getSalud() + recuperacion);
 					return id;
 				}
 			}

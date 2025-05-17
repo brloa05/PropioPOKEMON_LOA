@@ -11,7 +11,9 @@ import domain.Pokemon.Tipo;
 public class PokemonAplication {
 	private ArrayList<Pokemon> pokemones;
 	private ArrayList<Entrenador> entrenadores;
+	private ArrayList<Item> items;
 	private ModalidadJuego modalidadJuego;
+	private String modo;
 	private Map<Pokemon.Tipo, List<Movimiento>> movimientosPorTipo;
 	private Map<Pokemon, List<Movimiento>> pokemonMovements = new HashMap<>();
 	private List<Pokemon> selectedPokemons = new ArrayList<>();
@@ -25,6 +27,14 @@ public class PokemonAplication {
 			this.movimientosPorTipo = new HashMap<>();
 	        inicializarMovimientos();
 	        inicializarPokemonesDisponibles();
+	        inicializarItems();
+		
+	}
+	private void inicializarItems() {
+		items.add(new Potion("Potion"));
+		items.add(new SuperPotion("SuperPotion"));
+		items.add(new HyperPotion("HyperPotion"));
+		items.add(new Revive("Revive"));
 		
 	}
 	
@@ -190,7 +200,14 @@ public class PokemonAplication {
 		 pokemones.add(new PokemonDosTipos("GARDEVOIR", 50, getMovimientosPorTipo(Pokemon.Tipo.PSIQUICO)));
 		 pokemones.add(new PokemonDosTipos("METAGROSS", 50, getMovimientosPorTipo(Pokemon.Tipo.ACERO)));
 		 pokemones.add(new PokemonDosTipos("DELIBIRD", 50, getMovimientosPorTipo(Pokemon.Tipo.HIELO)));
-		 
+	 }
+	 
+	 public void setModo(String modo) {
+		 if (modo.equals("Normal")) {
+			 this.modo = "Normal";
+		 } else {
+			 this.modo = "Supervivencia";
+		 }
 	 }
 	 
 	 
@@ -204,7 +221,9 @@ public class PokemonAplication {
 	        return resultado;
 	  }
 	 
-	
+	public ArrayList<Item> getItems(){
+		return items;
+	}
 	
 	public void elegirModalidad(String  modalidadJuego)  {
 			if (modalidadJuego == "PvP") {
@@ -215,6 +234,7 @@ public class PokemonAplication {
 				 this.modalidadJuego = new ModalidadMvM("MvM");
 			}
 	}
+	
 	
 	
 	public void resetModalidad() {
@@ -258,6 +278,7 @@ public class PokemonAplication {
 		}
 	}
 	
+	
 	public void agregarMovivmientos(Map<Map<Entrenador, Pokemon>, List<Movimiento>> playerMovimientos) {
 		if(modalidadJuego.getName().equals("PvP")) {
 			((ModalidadPvP) modalidadJuego).agregarMoimientosPlayer(playerMovimientos, movimientosPorTipo);
@@ -271,11 +292,11 @@ public class PokemonAplication {
 	
 	public void agregarItemsLucha(Map<Entrenador,ArrayList<Item>> playerItems) {
 		if (modalidadJuego.getName() == "PvP") {
-			((ModalidadPvP) modalidadJuego).agregarItems(playerItems);
+			((ModalidadPvP) modalidadJuego).agregarItems(playerItems, this.items);
 		} else if (modalidadJuego.getName() == "PvM") {
-			((ModalidadPvM) modalidadJuego).agregarItems(playerItems);
+			((ModalidadPvM) modalidadJuego).agregarItems(playerItems,this.items);
 		} else if(modalidadJuego.getName() == "MvM") {
-			((ModalidadMvM) modalidadJuego).agregarItems(playerItems);
+			((ModalidadMvM) modalidadJuego).agregarItems(playerItems,this.items);
 		}
 		
 		
@@ -291,7 +312,19 @@ public class PokemonAplication {
 		
 	}
 	
+	public void agregarObjetosSupervivencia() {
+		for (Entrenador e: this.entrenadores) {
+			e.itemsAleatorios();
+			e.pokemonesAleatorios();
+			e.movimientosAleatorios();
+		}
+	}
+	
 	public ArrayList<Item> escojerItems(ArrayList<String> itemsEscogidos ) {
+		
+		if (itemsEscogidos.size() > 3) {
+			//PokemonException
+		}
 		ArrayList<Item> itemEscogidos =  new ArrayList<>();
 		int numeroPosiones = 0;
 		int numeroSuperPosiones = 0;
@@ -300,16 +333,16 @@ public class PokemonAplication {
 		
 		for (String item: itemsEscogidos) {
 			if (item.equals("Potion") && numeroPosiones < 2) {
-				itemEscogidos.add(new Potion("potion" + numeroPosiones, 20));
+				itemEscogidos.add(new Potion("potion" + numeroPosiones));
 				numeroPosiones += 1;
 			} else if (item.equals("HyperPotion") && numeroHyperPosiones < 2) {
-				itemEscogidos.add(new HyperPotion("HyperPotion" + numeroHyperPosiones, 50));
+				itemEscogidos.add(new HyperPotion("HyperPotion" + numeroHyperPosiones));
 				numeroHyperPosiones += 1;
 			} else if (item.equals("SuperPotion") && numeroSuperPosiones < 2) {
-				itemEscogidos.add(new SuperPotion("SuperPotion" + numeroSuperPosiones,200));
+				itemEscogidos.add(new SuperPotion("SuperPotion" + numeroSuperPosiones));
 				numeroSuperPosiones += 1;
 			} else if (item.equals("Revive") && numeroDeRevivir < 1) {
-				itemEscogidos.add(new Revive("Revive" + numeroDeRevivir, 400));
+				itemEscogidos.add(new Revive("Revive" + numeroDeRevivir));
 				 numeroDeRevivir += 1;
 			} else {
 				//se lanza una PokemonException

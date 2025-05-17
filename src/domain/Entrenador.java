@@ -93,7 +93,18 @@ public abstract class Entrenador {
 	    return pokemones;
 	}
     
+    public void itemsAleatorios() {
+		
+	}
+    
+    public void pokemonesAleatorios() {
+    	
+    }
+    public void movimientosAleatorios() {
+    
+    }
+    
     public abstract void escogerPokemonesTipo(Map<Tipo,List<Pokemon>> pokemonesMachine);
-    public abstract void escogerItemsTipo();
+    public abstract void escogerItemsTipo(ArrayList<Item> items);
     public abstract void agregarMovimientos(Pokemon pokemon,  Map<Tipo, List<Movimiento>> movimientosPorTipo, List<Movimiento> movimientosIsPlayer);
 }

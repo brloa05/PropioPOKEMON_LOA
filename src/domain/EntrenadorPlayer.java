@@ -1,5 +1,6 @@
 package domain;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -17,7 +18,7 @@ public class EntrenadorPlayer extends Entrenador {
 	}
 
 	@Override
-	public void escogerItemsTipo() {
+	public void escogerItemsTipo(ArrayList<Item> items) {
 		
 	}
 
@@ -25,5 +26,7 @@ public class EntrenadorPlayer extends Entrenador {
 	public void agregarMovimientos(Pokemon pokemon, Map<Tipo, List<Movimiento>> movimientosPorTipo, List<Movimiento> movimientosIsPlayer) {
 		pokemon.setMovimientos(movimientosIsPlayer);
 	}
+	
+	
 
 }

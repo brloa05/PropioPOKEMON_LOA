@@ -77,7 +77,7 @@ public class PokemonGUI extends JFrame {
     
     private String tipoMaquinaSeleccionada = "Normal";
     
-    private ModoJuego modoJuego = ModoJuego.PVM;
+    private ModoJuego modoJuego = ModoJuego.PVM; 
     
     
     
@@ -431,6 +431,10 @@ public void setModoJuego(ModoJuego modo) {
     	
     }
     
+    public void comienzoAgregarObjetosSurvival() {
+    	pokemonAplication.agregarObjetosSupervivencia();
+    }
+    
     private void centrarVentana() {
         Dimension screen = Toolkit.getDefaultToolkit().getScreenSize();
         int width = screen.width / 2;
@@ -482,10 +486,9 @@ public void setModoJuego(ModoJuego modo) {
     	
     }
     
-    public void comienzoAgregarPokemones() {
-    	
+    public void aplicationModo(String modo) {
+    	pokemonAplication.setModo(modo);
     }
-    
     
     private void confirmarSalida() {
         int opcion = JOptionPane.showConfirmDialog(
@@ -726,7 +729,7 @@ public void setModoJuego(ModoJuego modo) {
         }
         
         // Asignar items según la estrategia de la máquina
-        maquina.escogerItemsTipo();
+        maquina.escogerItemsTipo(pokemonAplication.getItems()); // poner como parametro pokemonAplication.getItems()
         
         // Mostrar información en consola
         System.out.println("\n=== Inicio de Batalla ===");
@@ -811,7 +814,7 @@ public void setModoJuego(ModoJuego modo) {
         }
         
         // Asignar items según la estrategia de la máquina
-        maquina.escogerItemsTipo();
+        maquina.escogerItemsTipo(pokemonAplication.getItems());
     }
     
     

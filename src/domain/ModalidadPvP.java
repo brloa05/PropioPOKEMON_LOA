@@ -6,7 +6,7 @@ import java.util.Map;
 
 import domain.Pokemon.Tipo;
 
-public class ModalidadPvP extends ModalidadJuego implements ModoSupervivencia,ModoNormal {
+public class ModalidadPvP extends ModalidadJuego implements ModoNormal {
 	
 	public ModalidadPvP(String name) {
 		super(name);
@@ -36,7 +36,7 @@ public class ModalidadPvP extends ModalidadJuego implements ModoSupervivencia,Mo
 	}
 
 	@Override
-	public void agregarItems(Map<Entrenador, ArrayList<Item>> playerItems) {
+	public void agregarItems(Map<Entrenador, ArrayList<Item>> playerItems,  ArrayList<Item> itemsDefault) {
 		for(Map.Entry<Entrenador,ArrayList<Item>> player: playerItems.entrySet()) {
 			player.getKey().setItems(player.getValue());
 		}
@@ -50,6 +50,7 @@ public class ModalidadPvP extends ModalidadJuego implements ModoSupervivencia,Mo
 			}
 		}
 	}
+
 	
 
 	

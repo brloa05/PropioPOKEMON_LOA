@@ -48,12 +48,12 @@ public class ModalidadPvM extends ModalidadJuego implements ModoNormal{
 	}
 
 	@Override
-	public void agregarItems(Map<Entrenador, ArrayList<Item>> playerItems) {
+	public void agregarItems(Map<Entrenador, ArrayList<Item>> playerItems,  ArrayList<Item> itemsDefault) {
 		for (Map.Entry<Entrenador, ArrayList<Item>> player: playerItems.entrySet()) {
 			if (player.getKey().getTipo().equals("PlayerTrainer")) {
 				player.getKey().setItems(player.getValue());
 			} else {
-				player.getKey().escogerItemsTipo();
+				player.getKey().escogerItemsTipo(itemsDefault);
 			}
 	
 		}

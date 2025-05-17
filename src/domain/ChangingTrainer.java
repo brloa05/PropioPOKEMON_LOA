@@ -19,16 +19,12 @@ public class ChangingTrainer extends EntrenadorMachine {
 	
 	@Override
 	public void escogerPokemonesTipo(Map<Tipo, List<Pokemon>> pokemonesMachine) {
-	    //se queman los datos 
+	    
 	}
 	
 	@Override
-	public void escogerItemsTipo() {
-	    ArrayList<Item> potions = new ArrayList<>();
-	    potions.add(new Potion("Potion0", 20));
-	    potions.add(new SuperPotion("SuperPotion0", 50));
-	    potions.add(new HyperPotion("HyperPotion0", 200));
-	    potions.add(new Revive("Revive0", 200));
+	public void escogerItemsTipo(ArrayList<Item> items) {
+	    
 
 	    int pocionesElegidas = 0;
 	    boolean reviveElegido = false;
@@ -36,7 +32,7 @@ public class ChangingTrainer extends EntrenadorMachine {
 	    Item menor = null;
 	    Item mayor = null;
 
-	    for (Item it : potions) {
+	    for (Item it : items) {
 	        if (it.esRevive()) continue; // lo elegimos después
 	        if (menor == null || it.getRecuperacion() < menor.getRecuperacion()) {
 	            menor = it;
@@ -56,7 +52,7 @@ public class ChangingTrainer extends EntrenadorMachine {
 	    }
 
 	    // Agrega revive si no está ya y si no fue elegido
-	    for (Item it : potions) {
+	    for (Item it : items) {
 	        if (it.esRevive() && !reviveElegido) {
 	            this.items.add(it);
 	            reviveElegido = true;
@@ -93,8 +89,8 @@ public class ChangingTrainer extends EntrenadorMachine {
 		        }
 		        
 		    } catch (NoSuchElementException e) {
-		        // Manejar caso cuando no hay más elementos disponibles
-		        break;
+
+		    	break;
 		    }
 		}
 		

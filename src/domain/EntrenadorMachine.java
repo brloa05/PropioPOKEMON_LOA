@@ -1,5 +1,6 @@
 package domain;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -18,7 +19,7 @@ public class EntrenadorMachine extends Entrenador {
 	}
 
 	@Override
-	public void escogerItemsTipo() {
+	public void escogerItemsTipo(ArrayList<Item> items) {
 		// TODO Auto-generated method stub
 		
 	}

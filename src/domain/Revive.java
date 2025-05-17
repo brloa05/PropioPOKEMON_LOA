@@ -1,12 +1,16 @@
 package domain;
 
 public class Revive extends Item {
-	public Revive(String id, int recuperacion) {
-		super(id, recuperacion);
+	private static final String  name = "Revive";
+	private static final int recuperacion = 400;
+	public Revive(String id) {
+		super(id);
 		// TODO Auto-generated constructor stub
 	}
-
-	private static final String  name = "Revive";
+	@Override
+	public int getRecuperacion() {
+		return recuperacion;
+	}
 
 	@Override
 	public String efectoItem(Pokemon pokemon) {

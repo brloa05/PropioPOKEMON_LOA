@@ -2,11 +2,10 @@ package domain;
 
 public abstract class Item {
 	protected String id;
-	protected int recuperacion;
 	
-	public Item(String id, int recuperacion) {
+	
+	public Item(String id) {
 		this.id = id;
-		this.recuperacion = recuperacion;
 	}
 	
 	public abstract String efectoItem(Pokemon pokemon);
@@ -15,9 +14,7 @@ public abstract class Item {
 		return id;
 	}
 	
-	public int getRecuperacion() {
-		return recuperacion;
-	}
+	public abstract int getRecuperacion();
 	public boolean esRevive() {
         return false;
     }

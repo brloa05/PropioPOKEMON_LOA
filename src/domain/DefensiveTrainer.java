@@ -23,7 +23,7 @@ public class DefensiveTrainer extends EntrenadorMachine{
 	        todos.addAll(lista);
 	    }
 
-	    // Ordenar por defensa total descendente
+	    
 	    todos.sort((a, b) -> Integer.compare(
 	        (b.getDefensa() + b.getDefensaEspecial()),
 	        (a.getDefensa() + a.getDefensaEspecial())
@@ -39,20 +39,16 @@ public class DefensiveTrainer extends EntrenadorMachine{
 
 	
 	@Override
-	public void escogerItemsTipo() {
-	    ArrayList<Item> potions = new ArrayList<>();
-	    potions.add(new Potion("Potion0", 20));
-	    potions.add(new SuperPotion("SuperPotion0", 50));
-	    potions.add(new HyperPotion("HyperPotion0", 200));
-	    potions.add(new Revive("Revive0", 200));
+	public void escogerItemsTipo(ArrayList<Item> items) {
+	    
 
 	    int pocionesElegidas = 0;
 	    boolean reviveElegido = false;
 
-	    // Ordenar por mayor recuperación primero (atacante = máxima recuperación en combate)
-	    potions.sort((a, b) -> Integer.compare(b.getRecuperacion(), a.getRecuperacion()));
+	    
+	    items.sort((a, b) -> Integer.compare(b.getRecuperacion(), a.getRecuperacion()));
 
-	    for (Item it : potions) {
+	    for (Item it : items) {
 	        if (it.esRevive()) continue;
 	        if (pocionesElegidas < 2) {
 	            this.items.add(it);
@@ -60,7 +56,7 @@ public class DefensiveTrainer extends EntrenadorMachine{
 	        }
 	    }
 
-	    for (Item it : potions) {
+	    for (Item it : items) {
 	        if (it.esRevive() && !reviveElegido) {
 	            this.items.add(it);
 	            reviveElegido = true;
@@ -90,7 +86,7 @@ public class DefensiveTrainer extends EntrenadorMachine{
 		            defensiveMovimiento.add(m);
 		        }
 		    } catch (NoSuchElementException e) {
-		        // Manejar caso cuando no hay más elementos disponibles
+		       
 		        break;
 		    }
 		}
@@ -104,11 +100,10 @@ public class DefensiveTrainer extends EntrenadorMachine{
 		
 		while (defensiveMovimiento.size() < 4) {
 		    try {
-		        // Obtener tipo aleatorio no usado
+	
 		        Tipo tipoAleatorio = obtenerLlaveAleatoria(movimientosPorTipo, tiposUsados2);
 		        tiposUsados2.add(tipoAleatorio);
 		        
-		        // Obtener movimiento aleatorio no usado
 		        List<Movimiento> movimientos = movimientosPorTipo.get(tipoAleatorio);
 		        Movimiento m = obtenerUnElementoAleatorio(movimientos, movimientosUsados2);
 		        movimientosUsados2.add(m);
@@ -117,7 +112,7 @@ public class DefensiveTrainer extends EntrenadorMachine{
 		            defensiveMovimiento.add(m);
 		        }
 		    } catch (NoSuchElementException e) {
-		        // Manejar caso cuando no hay más elementos disponibles
+		        
 		        break;
 		    }
 		}

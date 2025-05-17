@@ -1,12 +1,18 @@
 package domain;
 
 public class HyperPotion extends Item {
-	public HyperPotion(String id, int recuperacion) {
-		super(id, recuperacion);
+	private static final String  name = "HyperPotion";
+	private static final int recuperacion = 200;
+	public HyperPotion(String id) {
+		super(id);
 		// TODO Auto-generated constructor stub
 	}
 
-	private static final String  name = "HyperPotion";
+	
+	@Override
+	public int getRecuperacion() {
+		return recuperacion;
+	}
 
 	@Override
 	public String efectoItem(Pokemon pokemon) {
