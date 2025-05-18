@@ -179,6 +179,25 @@ public class PokemonAplication {
         movimientosVolador.add(new Fisico("Pico taladro", 80, 100, 20, "10% de hacer retroceder al objetivo", Movimiento.TipoEfecto.RETROCESO, Movimiento.ObjetivoEfecto.OBJETIVO, 0));
         movimientosVolador.add(new Fisico("Picotazo", 50, 100, 25, "10% de hacer retroceder al objetivo", Movimiento.TipoEfecto.RETROCESO, Movimiento.ObjetivoEfecto.OBJETIVO, 0));
         movimientosVolador.add(new Especial("Tornado", 110, 70, 5, "10% de confundir al objetivo", Movimiento.TipoEfecto.CONFUNDIR, Movimiento.ObjetivoEfecto.OBJETIVO, 0));
+        
+        
+
+        movimientosPorTipo.put(Pokemon.Tipo.AGUA, movimientosAgua);
+        movimientosPorTipo.put(Pokemon.Tipo.BICHO, movimientosBicho);
+        movimientosPorTipo.put(Pokemon.Tipo.DRAGON, movimientosDragon);
+        movimientosPorTipo.put(Pokemon.Tipo.ELECTRICO, movimientosElectrico);
+        movimientosPorTipo.put(Pokemon.Tipo.FANTASMA, movimientosFantasma);
+        movimientosPorTipo.put(Pokemon.Tipo.FUEGO, movimientosFuego);
+        movimientosPorTipo.put(Pokemon.Tipo.HIELO, movimientosHielo);
+        movimientosPorTipo.put(Pokemon.Tipo.LUCHA, movimientosLucha);
+        movimientosPorTipo.put(Pokemon.Tipo.PLANTA, movimientosPlanta);
+        movimientosPorTipo.put(Pokemon.Tipo.PSIQUICO, movimientosPsiquico);
+        movimientosPorTipo.put(Pokemon.Tipo.ROCA, movimientosRoca);
+        movimientosPorTipo.put(Pokemon.Tipo.SINIESTRO, movimientosSiniestro);
+        movimientosPorTipo.put(Pokemon.Tipo.TIERRA, movimientosTierra);
+        movimientosPorTipo.put(Pokemon.Tipo.VENENO, movimientosVeneno);
+        movimientosPorTipo.put(Pokemon.Tipo.VOLADOR, movimientosVolador);
+        
     }
 	
 	 public List<Movimiento> getMovimientosPorTipo(Pokemon.Tipo tipo) {
@@ -283,13 +302,42 @@ public class PokemonAplication {
 	}
 	
 	
-	public void agregarMovivmientos(Map<Map<Entrenador, Pokemon>, List<Movimiento>> playerMovimientos) {
+	public void agregarMovimientos(Map<Map<Entrenador, Pokemon>, List<Movimiento>> playerMovimientos) {
 		if(modalidadJuego.getName().equals("PvP")) {
 			((ModalidadPvP) modalidadJuego).agregarMoimientosPlayer(playerMovimientos, movimientosPorTipo);
 		} else if (modalidadJuego.getName().equals("PvM")) {
 			((ModalidadPvM) modalidadJuego).agregarMoimientosPlayer(playerMovimientos, movimientosPorTipo);
 		} else if (modalidadJuego.getName().equals("MvM")) {
 			((ModalidadMvM) modalidadJuego).agregarMoimientosPlayer(playerMovimientos, movimientosPorTipo);
+		}
+		
+		for (Entrenador e : entrenadores) {
+			System.out.println("-----------------------------");
+			System.out.println(e.getName());
+			ArrayList<Item> items = e.getItems();
+			ArrayList<Pokemon> poke = e.getPokemones();
+			for(Item i : items) {
+				System.out.println("--------------Items---------------");
+				System.out.println(i.getId());
+			}
+			for(Pokemon p : poke) {
+			    System.out.println("--------------pokemones---------------");
+			    System.out.println(p.getNombre());
+			    List<Movimiento> movi = p.getMovimientos();
+			    if (movi == null) {
+			        System.out.println("Movimientos es null");
+			    } else if (movi.isEmpty()) {
+			        System.out.println("No hay movimientos asignados");
+			    } else {
+			        for (Movimiento m : movi) {
+			            System.out.println("--------------movimientos---------------");
+			            System.out.println(m.getName());
+			        }
+			    }
+			}
+			
+			
+			
 		}
 		
 	}
@@ -304,14 +352,7 @@ public class PokemonAplication {
 		}
 		
 		
-		for (Entrenador e: entrenadores) {
-			System.out.println(e.getName());
-			ArrayList<Item> item = e.getItems();
-			for(Item i : item) {
-				System.out.println(i.getId());
-			}
-		}
-		
+
 		
 		
 	}
@@ -319,10 +360,41 @@ public class PokemonAplication {
 
 	public void agregarObjetosSupervivencia() {
 		for (Entrenador e: this.entrenadores) {
-			e.itemsAleatorios(this.items);
 			e.pokemonesAleatorios(this.pokemones);
 			e.movimientosAleatorios(this.movimientosPorTipo);
 		}
+		
+		for (Entrenador e : entrenadores) {
+			System.out.println("-----------------------------");
+			System.out.println(e.getName());
+			ArrayList<Item> items = e.getItems();
+			ArrayList<Pokemon> poke = e.getPokemones();
+			for(Item i : items) {
+				System.out.println("--------------Items---------------");
+				System.out.println(i.getId());
+			}
+			for(Pokemon p : poke) {
+			    System.out.println("--------------pokemones---------------");
+			    System.out.println(p.getNombre());
+			    List<Movimiento> movi = p.getMovimientos();
+			    if (movi == null) {
+			        System.out.println("Movimientos es null");
+			    } else if (movi.isEmpty()) {
+			        System.out.println("No hay movimientos asignados");
+			    } else {
+			        for (Movimiento m : movi) {
+			            System.out.println("--------------movimientos---------------");
+			            System.out.println(m.getName());
+			        }
+			    }
+			}
+			
+			
+			
+		}
+		
+		
+		
 	}
 	
 	public ArrayList<Item> escojerItems(ArrayList<String> itemsEscogidos ) {

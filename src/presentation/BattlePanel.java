@@ -76,10 +76,10 @@ public class BattlePanel extends JPanel {
 
     } catch (Exception e) {
         JOptionPane.showMessageDialog(this,
-            "Error al inicializar la batalla: " + e.getMessage(),
+            "Erroal inicializar la batalla: " + e.getMessage(),
             "Error",
             JOptionPane.ERROR_MESSAGE);
-        throw new RuntimeException("Error al inicializar la batalla", e);
+        throw new RuntimeException("Erroral inicializar la batalla", e);
     }
 }
     

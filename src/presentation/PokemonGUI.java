@@ -58,7 +58,7 @@ public class PokemonGUI extends JFrame {
     private PokemonSelectionPanel pokemonSelectionPanel;
     private PokemonSelectionPanelTwo pokemonSelectionPanelTwo;
     private PokemonSelectionPvMPanel pokemonSelectionPvMPanel;
-    
+    private BattleSupreme1 battlePanel1;
     private BattlePanel battlePanel;
     private Map<Pokemon, List<Movimiento>> player1Movimientos;
     private Map<Pokemon, List<Movimiento>> player2Movimientos;
@@ -340,6 +340,25 @@ public class PokemonGUI extends JFrame {
 	        volverAlMenuPrincipal();
 	    }
     }
+    
+    public void battleSupreme() {
+    	
+    	ArrayList<Entrenador> entre = pokemonAplication.getEntrenadores();
+    	Entrenador jugador1 = new EntrenadorPlayer("ee", "22");
+    	Entrenador jugador2 = new EntrenadorPlayer("ee", "22");
+    	for (Entrenador e : entre) {
+    		if (e.getName().equals(Entrenador1)) {
+    			jugador1 = e;
+    		} else {
+    			jugador2 = e;
+    		}
+    		
+    	}
+    	battlePanel1= new BattleSupreme1(this, jugador1, jugador2);
+        cardPanel.add(battlePanel1, "BATTLE1");
+        cardLayout.show(cardPanel, "BATTLE1");
+    }
+    
 
     // Método para mostrar batalla PvP
     public void mostrarBattlePanel() {
@@ -467,10 +486,6 @@ public class PokemonGUI extends JFrame {
 
     public void agregarEntrenadores() {
     	pokemonAplication.crearEntrenadors(this.entrenadores); 
-    	for (Map.Entry<String,String> e: entrenadores.entrySet()) {
-    		System.out.println(e.getKey());
-    		System.out.println(e.getValue());
-    	}
     	
     }
     

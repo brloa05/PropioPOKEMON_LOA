@@ -1,6 +1,7 @@
 package domain;
 
 
+import java.util.ArrayList;
 import java.util.List;
 public abstract class Pokemon {
 	
@@ -269,7 +270,9 @@ public abstract class Pokemon {
     public void setMovimientos(List<Movimiento> movimientos) {
     	this.movimientos = movimientos;
     }
-    
+    public List<Movimiento> getMovimientos() {
+        return this.movimientos != null ? this.movimientos : new ArrayList<>();
+    }
     public boolean intentarAtaque(Pokemon atacante, Movimiento movimiento, Pokemon objetivo) {
 
         if (!atacante.verificarEstado()) {

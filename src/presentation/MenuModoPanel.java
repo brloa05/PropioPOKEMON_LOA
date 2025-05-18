@@ -115,8 +115,10 @@ public class MenuModoPanel extends JPanel {
         });
         
         btnModoSupervivencia.addActionListener(e -> {
-            JOptionPane.showMessageDialog(pokemonGUI, "Iniciando Modo Supervivencia...");
             pokemonGUI.aplicationModo("Supervivencia");
+            pokemonGUI.agregarModalidad("PvP");
+            crearObjetosSupervivencia();
+            pokemonGUI.battleSupreme();
             
         });
         

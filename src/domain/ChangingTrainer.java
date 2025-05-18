@@ -95,9 +95,7 @@ public class ChangingTrainer extends EntrenadorMachine {
 
 		    	break;
 		    }
-		}
-		
-		
+	}
 		pokemon.setMovimientos(defensiveMovimiento);
 	}
 

@@ -9,6 +9,7 @@ import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.Random;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import domain.Pokemon.Tipo;
 
@@ -96,95 +97,95 @@ public abstract class Entrenador {
 	    return pokemones;
 	}
     
-    public void itemsAleatorios(ArrayList<Item> items) {
-    	Map<String, Integer> pocionesSeleccionadas = new HashMap<>();
-        Map<String, Integer> revivirSeleccionados = new HashMap<>();
-        ArrayList<Item> seleccionados = new ArrayList<>();
-
-        Collections.shuffle(items); // Aleatorizar la lista
-
-        for (Item item : items) {
-            if (seleccionados.size() == 3) break;
-
-            String tipo = item.getTipo(); // Ej: "Potion", "HyperPotion", "Revive", etc.
-
-            if (item.esPocion()) {
-                int cantidad = pocionesSeleccionadas.getOrDefault(tipo, 0);
-                if (cantidad < 2) {
-                    seleccionados.add(item);
-                    pocionesSeleccionadas.put(tipo, cantidad + 1);
-                }
-            } else if (item.esRevivir()) {
-                int cantidad = revivirSeleccionados.getOrDefault(tipo, 0);
-                if (cantidad < 1) {
-                    seleccionados.add(item);
-                    revivirSeleccionados.put(tipo, 1);
-                }
-            } else {
-                // Otros ítems sin restricciones
-                seleccionados.add(item);
-            }
-        }
-        this.items = seleccionados;
-
-        
-	}
+    
     
     public void pokemonesAleatorios(ArrayList<Pokemon> pokemones) {
         Map<Tipo, List<Pokemon>> pokemonesPorTipo = new HashMap<>();
         Set<Pokemon> seleccionados = new HashSet<>();
+        
+     // Verificar que haya al menos 2 Pokémon por tipo
+        //for (Tipo tipo : pokemonesPorTipo.keySet()) {
+            //List<Pokemon> lista = pokemonesPorTipo.get(tipo);
+            //if (lista.size() < 2) {
+                //throw new IllegalArgumentException("No hay suficientes Pokémon del tipo: " + tipo);
+           // }
+      	//}
 
-        // Agrupar Pokémon por cada uno de sus tipos
+        // Agrupar Pokémon por tipo
         for (Pokemon p : pokemones) {
             for (Tipo tipo : p.getTipos()) {
                 pokemonesPorTipo.computeIfAbsent(tipo, k -> new ArrayList<>()).add(p);
             }
         }
 
-        // Verificar que haya al menos 2 Pokémon por tipo
-        for (Tipo tipo : pokemonesPorTipo.keySet()) {
-            List<Pokemon> lista = pokemonesPorTipo.get(tipo);
-            if (lista.size() < 2) {
-                throw new IllegalArgumentException("No hay suficientes Pokémon del tipo: " + tipo);
-            }
-        }
-
-        // Elegir 2 Pokémon aleatorios por cada tipo (sin repetir)
-        for (Map.Entry<Tipo, List<Pokemon>> entry : pokemonesPorTipo.entrySet()) {
-            List<Pokemon> lista = new ArrayList<>(entry.getValue());
+        // Intentar seleccionar 2 Pokémon por tipo, si hay suficientes
+        for (List<Pokemon> lista : pokemonesPorTipo.values()) {
             Collections.shuffle(lista);
-
-            int count = 0;
             for (Pokemon p : lista) {
-                if (seleccionados.add(p)) { // solo se añade si no está repetido
-                    count++;
-                }
-                if (count == 2) break;
+                if (seleccionados.size() >= 6) break;
+                seleccionados.add(p);
             }
+            if (seleccionados.size() >= 6) break;
         }
 
-        // Si aún hay menos de 6, completar aleatoriamente sin repetir
+        // Si aún faltan Pokémon, completar aleatoriamente
         if (seleccionados.size() < 6) {
             List<Pokemon> restantes = new ArrayList<>(pokemones);
             Collections.shuffle(restantes);
             for (Pokemon p : restantes) {
                 if (seleccionados.size() >= 6) break;
-                seleccionados.add(p); // no se repite gracias al Set
+                seleccionados.add(p);
             }
         }
 
         // Convertir a lista y mezclar
-        List<Pokemon> resultadoFinal = new ArrayList<>(seleccionados);
+        ArrayList<Pokemon> resultadoFinal = new ArrayList<>(seleccionados);
         Collections.shuffle(resultadoFinal);
 
-        // Mostrar resultados (o asignarlos)
-        for (Pokemon p : resultadoFinal) {
-            System.out.println(p.getNombre() + " " + p.getTipos());
+        // Asignar al atributo de la clase
+        this.pokemones = resultadoFinal;
+    }
+    public void movimientosAleatorios(Map<Tipo, List<Movimiento>> movimientosPorTipo) {
+        for (Pokemon pokemon : this.pokemones) {
+            List<Movimiento> movimientosSeleccionados = new ArrayList<>();
+            Set<Movimiento> movimientosUsados = new HashSet<>();
+            List<Tipo> tiposDisponibles = new ArrayList<>(movimientosPorTipo.keySet());
+
+            Collections.shuffle(tiposDisponibles);  // Mezclamos tipos para aleatoriedad
+
+            while (movimientosSeleccionados.size() < 4 && !tiposDisponibles.isEmpty()) {
+                Tipo tipoActual = tiposDisponibles.remove(0); // Tomamos un tipo
+                List<Movimiento> movimientosDeTipo = new ArrayList<>(movimientosPorTipo.get(tipoActual));
+                Collections.shuffle(movimientosDeTipo);
+
+                for (Movimiento m : movimientosDeTipo) {
+                    if (!movimientosUsados.contains(m)) {
+                        movimientosSeleccionados.add(m);
+                        movimientosUsados.add(m);
+                        break; // Solo 1 movimiento por tipo
+                    }
+                }
+            }
+
+            // Si aún no tenemos 4 movimientos, rellenamos aleatoriamente
+            if (movimientosSeleccionados.size() < 4) {
+                List<Movimiento> todos = movimientosPorTipo.values().stream()
+                    .flatMap(List::stream).distinct().collect(Collectors.toList());
+                Collections.shuffle(todos);
+
+                for (Movimiento m : todos) {
+                    if (movimientosSeleccionados.size() >= 4) break;
+                    if (!movimientosUsados.contains(m)) {
+                        movimientosSeleccionados.add(m);
+                        movimientosUsados.add(m);
+                    }
+                }
+            }
+
+            pokemon.setMovimientos(movimientosSeleccionados);
         }
     }
-    public void movimientosAleatorios(Map<Pokemon.Tipo, List<Movimiento>> movimientos) {
-    
-    }
+
     
     public abstract void escogerPokemonesTipo(Map<Tipo,List<Pokemon>> pokemonesMachine);
     //items
