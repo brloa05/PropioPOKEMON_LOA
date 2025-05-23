@@ -20,7 +20,14 @@ public abstract class Entrenador {
     protected String tipo;
    
     
-    public Entrenador(String name, String tipo) {
+    public Entrenador(String name, String tipo) throws PokemonException {
+    	if (!(tipo.equals("ExpertTrainer") || tipo.equals("DefensiveTrainer") || tipo.equals("ChangingTrainer") || tipo.equals("AttackingTrainer") || tipo.equals("PlayerTrainer"))) {
+    		throw new PokemonException(PokemonException.TIPO_ENTRENADOR_INVALIDO);
+    	}
+    	
+    	if ((tipo.equals(" ") || tipo.equals(null)) || (name.contentEquals(" ") || name.equals(null))) {
+    		throw new PokemonException(PokemonException.NOMBRE_JUGADOR_INVALIDO);
+    	}
         this.name = name;
         this.tipo = tipo;
         this.pokemones = new ArrayList<>();
@@ -187,9 +194,9 @@ public abstract class Entrenador {
     }
 
     
-    public abstract void escogerPokemonesTipo(Map<Tipo,List<Pokemon>> pokemonesMachine);
+    public abstract void escogerPokemonesTipo(Map<Tipo,List<Pokemon>> pokemonesMachine) throws PokemonException;
     //items
   	//
-    public abstract void escogerItemsTipo(ArrayList<Item> items);
-    public abstract void agregarMovimientos(Pokemon pokemon,  Map<Tipo, List<Movimiento>> movimientosPorTipo, List<Movimiento> movimientosIsPlayer);
+    public abstract void escogerItemsTipo(ArrayList<Item> items) throws PokemonException;
+    public abstract void agregarMovimientos(Pokemon pokemon,  Map<Tipo, List<Movimiento>> movimientosPorTipo, List<Movimiento> movimientosIsPlayer) throws PokemonException;
 }

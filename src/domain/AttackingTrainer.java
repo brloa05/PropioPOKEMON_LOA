@@ -12,14 +12,18 @@ import domain.Pokemon.Tipo;
 
 public class AttackingTrainer extends EntrenadorMachine{
 
-	public AttackingTrainer(String name, String tipo) {
+	public AttackingTrainer(String name, String tipo) throws PokemonException {
 		super(name, tipo);
-		
 		// TODO Auto-generated constructor stub
 	}
 	
 	@Override
-	public void escogerPokemonesTipo(Map<Tipo, List<Pokemon>> pokemonesMachine) {
+	public void escogerPokemonesTipo(Map<Tipo, List<Pokemon>> pokemonesMachine) throws PokemonException {
+		
+		if (pokemonesMachine == null) {
+			throw new PokemonException(PokemonException.POKEMONESMACHINE_IS_NULL);
+		}
+		
 	    ArrayList<Pokemon> todos = new ArrayList<>();
 	    for (List<Pokemon> lista : pokemonesMachine.values()) {
 	        todos.addAll(lista);
@@ -42,9 +46,11 @@ public class AttackingTrainer extends EntrenadorMachine{
 	//items
 	//
 	@Override
-	public void escogerItemsTipo(ArrayList<Item> items) {
+	public void escogerItemsTipo(ArrayList<Item> items) throws PokemonException {
 	    
-
+		if (items == null) {
+			throw new PokemonException(PokemonException.LISTA_ITEMS_VACIA);
+		}
 	    int pocionesElegidas = 0;
 	    boolean reviveElegido = false;
 
@@ -69,7 +75,19 @@ public class AttackingTrainer extends EntrenadorMachine{
 	}
 	
 	@Override
-	public void agregarMovimientos(Pokemon pokemon, Map<Tipo, List<Movimiento>> movimientosPorTipo, List<Movimiento> movimientosIsPlayer) {
+	public void agregarMovimientos(Pokemon pokemon, Map<Tipo, List<Movimiento>> movimientosPorTipo, List<Movimiento> movimientosIsPlayer) throws PokemonException {
+		if (pokemon == null  ) {
+			throw new PokemonException(PokemonException.POKEMON_IS_NULL);
+		}
+		
+		if (movimientosPorTipo == null  ) {
+			throw new PokemonException(PokemonException.MOVIMIENTOSPORTIPO_IS_NULL);
+		}
+		
+		if (movimientosIsPlayer == null  ) {
+			throw new PokemonException(PokemonException.MOVIMIENTOSISPLAYER_IS_NULL);
+		}
+		
 		List<Movimiento> defensiveMovimiento = new ArrayList<>();
 		Set<Tipo> tiposUsados = new HashSet<>();
 		Set<Movimiento> movimientosUsados = new HashSet<>();
@@ -94,10 +112,7 @@ public class AttackingTrainer extends EntrenadorMachine{
 		    }
 		}
 
-		if (defensiveMovimiento.size() < 3) {
-		    System.out.println("Advertencia: Solo se encontraron " + defensiveMovimiento.size() + 
-		                     " movimientos de estado únicos");
-		}
+		
 		Set<Tipo> tiposUsados2 = new HashSet<>();
 		Set<Movimiento> movimientosUsados2 = new HashSet<>();
 		

@@ -8,14 +8,14 @@ import domain.Pokemon.Tipo;
 
 public class ModalidadPvP extends ModalidadJuego implements ModoNormal {
 	
-	public ModalidadPvP(String name) {
+	public ModalidadPvP(String name) throws PokemonException {
 		super(name);
 	}
 
 	@Override
-	public ArrayList<Entrenador> crearEntrenadores(Map<String, String> nombresAndTipo) {
+	public ArrayList<Entrenador> crearEntrenadores(Map<String, String> nombresAndTipo) throws PokemonException {
 	    if (nombresAndTipo == null) {
-	        throw new IllegalArgumentException("El mapa de nombres y tipos no puede ser null");
+	        throw new PokemonException(PokemonException.MAPA_ENTRENADORES_VACIO);
 	    }
 
 	    ArrayList<Entrenador> entrenadores = new ArrayList<>();
@@ -29,7 +29,10 @@ public class ModalidadPvP extends ModalidadJuego implements ModoNormal {
 	}
 	
 	@Override
-	public void agregarPokemones(Map<Entrenador, ArrayList<Pokemon>> playerPokemones, Map<Tipo,List<Pokemon>> pokemonesMachine) {
+	public void agregarPokemones(Map<Entrenador, ArrayList<Pokemon>> playerPokemones, Map<Tipo,List<Pokemon>> pokemonesMachine) throws PokemonException {
+		if (playerPokemones == null) {
+			throw new PokemonException(PokemonException.PLAYERPOKEMONES_IS_NULL);
+		}
 		for (Map.Entry<Entrenador, ArrayList<Pokemon>> e: playerPokemones.entrySet()) {
 			e.getKey().setPokemones(e.getValue());
 		}	
@@ -43,7 +46,7 @@ public class ModalidadPvP extends ModalidadJuego implements ModoNormal {
 	}
 
 	@Override
-	public void agregarMoimientosPlayer(Map<Map<Entrenador, Pokemon>, List<Movimiento>> playerMovimientos, Map<Tipo, List<Movimiento>> movimientosPorTipo) {
+	public void agregarMoimientosPlayer(Map<Map<Entrenador, Pokemon>, List<Movimiento>> playerMovimientos, Map<Tipo, List<Movimiento>> movimientosPorTipo) throws PokemonException {
 		for (Map.Entry<Map<Entrenador, Pokemon>,  List<Movimiento>>  pm : playerMovimientos.entrySet()) {
 			for (Map.Entry<Entrenador, Pokemon>  ep:  pm.getKey().entrySet()) {
 				ep.getKey().agregarMovimientos(ep.getValue(),movimientosPorTipo, pm.getValue());

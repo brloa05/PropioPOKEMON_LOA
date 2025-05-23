@@ -11,13 +11,16 @@ import domain.Pokemon.Tipo;
 
 public class DefensiveTrainer extends EntrenadorMachine{
 
-	public DefensiveTrainer(String name, String tipo) {
+	public DefensiveTrainer(String name, String tipo) throws PokemonException {
 		super(name, tipo);
 		// TODO Auto-generated constructor stub
 	}
 	
 	@Override
-	public void escogerPokemonesTipo(Map<Tipo, List<Pokemon>> pokemonesMachine) {
+	public void escogerPokemonesTipo(Map<Tipo, List<Pokemon>> pokemonesMachine) throws PokemonException {
+		if (items == null) {
+			throw new PokemonException(PokemonException.LISTA_ITEMS_VACIA);
+		}
 	    ArrayList<Pokemon> todos = new ArrayList<>();
 	    for (List<Pokemon> lista : pokemonesMachine.values()) {
 	        todos.addAll(lista);
@@ -40,9 +43,11 @@ public class DefensiveTrainer extends EntrenadorMachine{
 	//items
 		//
 	@Override
-	public void escogerItemsTipo(ArrayList<Item> items) {
+	public void escogerItemsTipo(ArrayList<Item> items) throws PokemonException {
 	    
-
+		if (items == null) {
+			throw new PokemonException(PokemonException.LISTA_ITEMS_VACIA);
+		}
 	    int pocionesElegidas = 0;
 	    boolean reviveElegido = false;
 
@@ -67,7 +72,18 @@ public class DefensiveTrainer extends EntrenadorMachine{
 	}
 	
 	@Override
-	public void agregarMovimientos(Pokemon pokemon, Map<Tipo, List<Movimiento>> movimientosPorTipo, List<Movimiento> movimientosIsPlayer) {
+	public void agregarMovimientos(Pokemon pokemon, Map<Tipo, List<Movimiento>> movimientosPorTipo, List<Movimiento> movimientosIsPlayer) throws PokemonException {
+		if (pokemon == null  ) {
+			throw new PokemonException(PokemonException.POKEMON_IS_NULL);
+		}
+		
+		if (movimientosPorTipo == null  ) {
+			throw new PokemonException(PokemonException.MOVIMIENTOSPORTIPO_IS_NULL);
+		}
+		
+		if (movimientosIsPlayer == null  ) {
+			throw new PokemonException(PokemonException.MOVIMIENTOSISPLAYER_IS_NULL);
+		}
 		List<Movimiento> defensiveMovimiento = new ArrayList<>();
 		Set<Tipo> tiposUsados = new HashSet<>();
 		Set<Movimiento> movimientosUsados = new HashSet<>();

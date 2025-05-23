@@ -4,7 +4,7 @@ public class HyperPotion extends Item {
 	private static final String  name = "HyperPotion";
 	private static final String  tipo = "Potion";
 	private final int recuperacion = 200;
-	public HyperPotion(String id) {
+	public HyperPotion(String id) throws PokemonException {
 		super(id);
 		// TODO Auto-generated constructor stub
 	}

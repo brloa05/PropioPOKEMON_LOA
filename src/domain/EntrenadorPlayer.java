@@ -8,7 +8,7 @@ import domain.Pokemon.Tipo;
 
 public class EntrenadorPlayer extends Entrenador {
 
-	public EntrenadorPlayer(String name, String tipo ) {
+	public EntrenadorPlayer(String name, String tipo ) throws PokemonException {
 		super(name, tipo);
 		
 	}
@@ -18,7 +18,7 @@ public class EntrenadorPlayer extends Entrenador {
 	}
 
 	@Override
-	public void escogerItemsTipo(ArrayList<Item> items) {
+	public void escogerItemsTipo(ArrayList<Item> items) throws PokemonException {
 		
 	}
 

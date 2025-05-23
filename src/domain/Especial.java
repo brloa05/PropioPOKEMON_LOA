@@ -3,7 +3,7 @@ package domain;
 public class Especial extends Movimiento {
     public Especial(String name, int potencia, int presicion, int pp,
                    String descripcionEfecto, TipoEfecto tipoEfecto,
-                   ObjetivoEfecto objetivoEfecto, int prioridad) {
+                   ObjetivoEfecto objetivoEfecto, int prioridad) throws PokemonException {
         super(name, potencia, presicion, pp, descripcionEfecto,
               tipoEfecto, objetivoEfecto, prioridad);
     }

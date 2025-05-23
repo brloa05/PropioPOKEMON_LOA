@@ -12,7 +12,7 @@ import domain.Pokemon.Tipo;
 
 public class ChangingTrainer extends EntrenadorMachine {
 
-	public ChangingTrainer(String name, String tipo) {
+	public ChangingTrainer(String name, String tipo) throws PokemonException {
 		super(name, tipo);
 		// TODO Auto-generated constructor stub
 	}
@@ -26,8 +26,10 @@ public class ChangingTrainer extends EntrenadorMachine {
 		//
 	
 	@Override
-	public void escogerItemsTipo(ArrayList<Item> items) {
-	    
+	public void escogerItemsTipo(ArrayList<Item> items) throws PokemonException {
+		if (items == null) {
+			throw new PokemonException(PokemonException.LISTA_ITEMS_VACIA);
+		}
 
 	    int pocionesElegidas = 0;
 	    boolean reviveElegido = false;
@@ -64,7 +66,18 @@ public class ChangingTrainer extends EntrenadorMachine {
 	}
 	
 	@Override
-	public void agregarMovimientos(Pokemon pokemon, Map<Tipo, List<Movimiento>> movimientosPorTipo, List<Movimiento> movimientosIsPlayer) {
+	public void agregarMovimientos(Pokemon pokemon, Map<Tipo, List<Movimiento>> movimientosPorTipo, List<Movimiento> movimientosIsPlayer) throws PokemonException {
+		if (pokemon == null  ) {
+			throw new PokemonException(PokemonException.POKEMON_IS_NULL);
+		}
+		
+		if (movimientosPorTipo == null  ) {
+			throw new PokemonException(PokemonException.MOVIMIENTOSPORTIPO_IS_NULL);
+		}
+		
+		if (movimientosIsPlayer == null  ) {
+			throw new PokemonException(PokemonException.MOVIMIENTOSISPLAYER_IS_NULL);
+		}
 		List<Movimiento> defensiveMovimiento = new ArrayList<>();
 		Set<Tipo> tiposUsados = new HashSet<>();
 		Set<Movimiento> movimientosUsados = new HashSet<>();

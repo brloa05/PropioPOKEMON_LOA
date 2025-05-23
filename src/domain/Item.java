@@ -4,7 +4,10 @@ public abstract class Item {
 	protected String id;
 	
 	
-	public Item(String id) {
+	public Item(String id) throws PokemonException {
+		if (id.equals("") || id.equals(null)) {
+			throw new PokemonException(PokemonException.ID_ITEM_INVALIDO);
+		}
 		this.id = id;
 	}
 	

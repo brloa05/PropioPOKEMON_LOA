@@ -6,7 +6,7 @@ public class Potion extends Item{
 	private static final String  tipo = "Potion";
 	private final int recuperacion =  20;
 	
-	public Potion(String id) {
+	public Potion(String id) throws PokemonException {
 		super(id);
 		// TODO Auto-generated constructor stub
 	}
@@ -31,6 +31,7 @@ public class Potion extends Item{
 	}
 
 	@Override
+	//editado
 	public String efectoItem(Pokemon pokemon) {
 		if (pokemon.getSalud() == 0) {
 			if (pokemon.getSalud() == pokemon.getSaludMaxima()) {

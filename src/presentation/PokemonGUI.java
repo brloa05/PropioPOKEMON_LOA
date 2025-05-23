@@ -18,6 +18,7 @@ import domain.Movimiento;
 import domain.Pokemon;
 import domain.PokemonAplication;
 import domain.PokemonDosTipos;
+import domain.PokemonException;
 import domain.PokemonUnTipo;
 import domain.SuperPotion;
 import domain.AttackingTrainer;
@@ -297,19 +298,19 @@ public class PokemonGUI extends JFrame {
         if (maquina == null) {
             switch(tipoMaquinaSeleccionada) {
                 case "ExpertTrainer":
-                    maquina = new ExpertTrainer("Machine", "Machine");
+                    maquina = new ExpertTrainer("Machine", "ExpertTrainer");
                     break;
                 case "AttackingTrainer":
-                    maquina = new AttackingTrainer("Machine", "Machine");
+                    maquina = new AttackingTrainer("Machine", "AttackingTrainer");
                     break;
                 case "DefensiveTrainer":
-                    maquina = new DefensiveTrainer("Machine", "Machine");
+                    maquina = new DefensiveTrainer("Machine", "DefensiveTrainer");
                     break;
                 case "ChangingTrainer":
-                    maquina = new ChangingTrainer("Machine", "Machine");
+                    maquina = new ChangingTrainer("Machine", "ChangingTrainer");
                     break;
                 default:
-                    maquina = new ExpertTrainer("Machine", "Machine");
+                    maquina = new ExpertTrainer("Machine", "ExpertTrainer");
             }
         }
 
@@ -338,25 +339,28 @@ public class PokemonGUI extends JFrame {
 	            JOptionPane.ERROR_MESSAGE
 	        );
 	        volverAlMenuPrincipal();
+	    } catch(PokemonException p) {
+	    	
 	    }
     }
     
-    public void battleSupreme() {
-    	
-    	ArrayList<Entrenador> entre = pokemonAplication.getEntrenadores();
-    	Entrenador jugador1 = new EntrenadorPlayer("ee", "22");
-    	Entrenador jugador2 = new EntrenadorPlayer("ee", "22");
-    	for (Entrenador e : entre) {
-    		if (e.getName().equals(Entrenador1)) {
-    			jugador1 = e;
-    		} else {
-    			jugador2 = e;
-    		}
+    public void battleSupreme()   {
+    		ArrayList<Entrenador> entr = pokemonAplication.getEntrenadores();
+    		Entrenador ent1 = null;
+    		Entrenador ent2 = null;
     		
-    	}
-    	battlePanel1= new BattleSupreme1(this, jugador1, jugador2);
-        cardPanel.add(battlePanel1, "BATTLE1");
-        cardLayout.show(cardPanel, "BATTLE1");
+    		for (Entrenador e: entr) {
+		    	if (e.getName().equals(Entrenador1)) {
+		    		ent1 = e;
+		    	} else {
+		    		ent2 = e;
+		    	}
+    		}
+    		battlePanel1= new BattleSupreme1(this,ent1 ,ent2 );
+	        cardPanel.add(battlePanel1, "BATTLE1");
+	        cardLayout.show(cardPanel, "BATTLE1");
+    	
+    	
     }
     
 
@@ -364,8 +368,8 @@ public class PokemonGUI extends JFrame {
     public void mostrarBattlePanel() {
         try {
             // Modo PvP - usar el BattlePanel original
-            Entrenador jugador1 = new EntrenadorPlayer(Entrenador1, "Player");
-            Entrenador jugador2 = new EntrenadorPlayer(Entrenador2, "Player");
+            Entrenador jugador1 = new EntrenadorPlayer(Entrenador1, "PlayerTrainer");
+            Entrenador jugador2 = new EntrenadorPlayer(Entrenador2, "PlayerTrainer");
             
             if (playerPokemons.containsKey(Entrenador1)) {
                 jugador1.setPokemones(playerPokemons.get(Entrenador1));
@@ -394,6 +398,8 @@ public class PokemonGUI extends JFrame {
                 JOptionPane.ERROR_MESSAGE
             );
             volverAlMenuPrincipal();
+        } catch (PokemonException p) {
+        	p.getStackTrace();
         }
     }
 
@@ -411,30 +417,35 @@ public class PokemonGUI extends JFrame {
     
     
 	public void comienzoAgregarItems1(Map<String,Integer> itemsSeleccionados, String numero) {
-	    ArrayList<String> items = new ArrayList<>();
-	    
-	    // Convertir el Map a lista de strings
-	    for (Map.Entry<String,Integer> i: itemsSeleccionados.entrySet()) {
-	        for(int t = 0; t < i.getValue(); t++ ) {
-	            items.add(i.getKey());
-	        }
-	    }
-	    
-	    // Crear el Map para agregar los items al entrenador
-	    Map<Entrenador, ArrayList<Item>> playerItems = new HashMap<>();
-	    ArrayList<Item> itemsEscogidos = pokemonAplication.escojerItems(items);
-	    ArrayList<Entrenador> entrenadores = pokemonAplication.getEntrenadores();
-	    
-	    // Buscar el entrenador correcto y asignarle los items
-	    String nombreBuscado = "player1".equals(numero) ? Entrenador1 : Entrenador2;
-	    for (Entrenador e : entrenadores) {
-	        if (e.getName().equals(nombreBuscado)) {
-	            playerItems.put(e, itemsEscogidos);
-	            break;
-	        }
-	    }
-	    
-	    pokemonAplication.agregarItemsLucha(playerItems);
+		try {
+		    ArrayList<String> items = new ArrayList<>();
+		    
+		    // Convertir el Map a lista de strings
+		    for (Map.Entry<String,Integer> i: itemsSeleccionados.entrySet()) {
+		        for(int t = 0; t < i.getValue(); t++ ) {
+		            items.add(i.getKey());
+		        }
+		    }
+		    
+		    // Crear el Map para agregar los items al entrenador
+		    Map<Entrenador, ArrayList<Item>> playerItems = new HashMap<>();
+		    ArrayList<Item> itemsEscogidos = pokemonAplication.escojerItems(items);
+		    ArrayList<Entrenador> entrenadores = pokemonAplication.getEntrenadores();
+		    
+		    // Buscar el entrenador correcto y asignarle los items
+		    String nombreBuscado = "player1".equals(numero) ? Entrenador1 : Entrenador2;
+		    for (Entrenador e : entrenadores) {
+		        if (e.getName().equals(nombreBuscado)) {
+		            playerItems.put(e, itemsEscogidos);
+		            break;
+		        }
+		    }
+		    
+		    pokemonAplication.agregarItemsLucha(playerItems);
+		    
+		} catch(PokemonException p) {
+			p.getStackTrace();
+		}
 	}
 
 	
@@ -485,12 +496,19 @@ public class PokemonGUI extends JFrame {
     
 
     public void agregarEntrenadores() {
-    	pokemonAplication.crearEntrenadors(this.entrenadores); 
-    	
+    	try {
+    		pokemonAplication.crearEntrenadors(this.entrenadores); 
+    	} catch(PokemonException p) {
+    		p.getStackTrace();
+    	}
     }
     
     public void aplicationModo(String modo) {
-    	pokemonAplication.setModo(modo);
+    	try {
+    		pokemonAplication.setModo(modo);
+    	} catch(PokemonException p) {
+    		p.getStackTrace();
+    	}
     }
     
     private void confirmarSalida() {
@@ -508,7 +526,11 @@ public class PokemonGUI extends JFrame {
     }
     
     public void iniciarNuevaAplicacion() {
-        this.pokemonAplication = new PokemonAplication();
+        try {
+			this.pokemonAplication = new PokemonAplication();
+		} catch (PokemonException e) {
+			// TODO Auto-generated catch block
+			System.out.println(e.getMessage());		}
     }
     
     public void resetearPokemonAplication() {
@@ -552,7 +574,11 @@ public class PokemonGUI extends JFrame {
     
     
     public void agregarModalidad(String modalidad) {
-    	pokemonAplication.elegirModalidad(modalidad);
+    	try {
+			pokemonAplication.elegirModalidad(modalidad);
+		} catch (PokemonException e) {
+			e.printStackTrace();
+		}
     }
     
     public void resetearModalidad() {
@@ -688,75 +714,80 @@ public class PokemonGUI extends JFrame {
     
     private void comenzarBatalla() {
         // Crear los entrenadores
-        EntrenadorPlayer jugador = new EntrenadorPlayer(currentPlayer, "Player");
-        EntrenadorMachine maquina = new EntrenadorMachine("Machine1", "Machine");
-        
-        // Asignar pokémon y movimientos al jugador
-        if (playerPokemons.containsKey(currentPlayer)) {
-            jugador.setPokemones(playerPokemons.get(currentPlayer));
-        }
-        
-        // Crear mapas para la máquina
-        Map<Pokemon.Tipo, List<Pokemon>> pokemonesPorTipo = new HashMap<>();
-        
-     // En la clase PokemonGUI
-        
-        // Agrupar pokémon de un tipo
-        for (PokemonUnTipo.PokemonBase base : PokemonUnTipo.PokemonBase.values()) {
-            if (!pokemonesPorTipo.containsKey(base.tipo)) {
-                pokemonesPorTipo.put(base.tipo, new ArrayList<>());
-            }
-            Pokemon pokemon = new PokemonUnTipo(base.name(), base.stats[0], new ArrayList<>());
-            pokemonesPorTipo.get(base.tipo).add(pokemon);
-        }
-        
-        // Agrupar pokémon de dos tipos
-        for (PokemonDosTipos.PokemonBase base : PokemonDosTipos.PokemonBase.values()) {
-            if (!pokemonesPorTipo.containsKey(base.tipo1)) {
-                pokemonesPorTipo.put(base.tipo1, new ArrayList<>());
-            }
-            Pokemon pokemon = new PokemonDosTipos(base.name(), base.stats[0], new ArrayList<>());
-            pokemonesPorTipo.get(base.tipo1).add(pokemon);
-        }
-        
-        // Crear mapa de movimientos por tipo
-        Map<Pokemon.Tipo, List<Movimiento>> movimientosPorTipo = new HashMap<>();
-        for (Pokemon.Tipo tipo : Pokemon.Tipo.values()) {
-            movimientosPorTipo.put(tipo, Movimiento.getMovimientosPorTipo(tipo));
-        }
-        
-        // Que la máquina escoja sus pokémon según su estrategia
-        maquina.escogerPokemonesTipo(pokemonesPorTipo);
-        
-        // Asignar movimientos a cada pokémon de la máquina
-        for (Pokemon pokemon : maquina.getPokemones()) {
-            maquina.agregarMovimientos(pokemon, movimientosPorTipo, new ArrayList<>());
-        }
-        
-        // Asignar items según la estrategia de la máquina
-        maquina.escogerItemsTipo(pokemonAplication.getItems()); // poner como parametro pokemonAplication.getItems()
-        
-        // Mostrar información en consola
-        System.out.println("\n=== Inicio de Batalla ===");
-        System.out.println("Jugador: " + jugador.getName());
-        if (!jugador.getPokemones().isEmpty()) {
-            Pokemon primerPokemon = jugador.getPokemones().get(0);
-            System.out.println("Pokémon inicial: " + primerPokemon.getNombre());
-            System.out.println("Movimientos disponibles:");
-            List<Movimiento> moves = pokemonMovements.get(primerPokemon);
-            if (moves != null) {
-                for (Movimiento move : moves) {
-                    System.out.println("- " + move.getName());
-                }
-            }
-        }
-        System.out.println("Oponente: " + maquina.getName());
-        System.out.println("=====================\n");
+    	try {
+		    EntrenadorPlayer jugador = new EntrenadorPlayer(currentPlayer, "Player");
+		    EntrenadorMachine maquina = new EntrenadorMachine("Machine1", "Machine");
+	    	
+	        // Asignar pokémon y movimientos al jugador
+	        if (playerPokemons.containsKey(currentPlayer)) {
+	            jugador.setPokemones(playerPokemons.get(currentPlayer));
+	        }
+	        
+	        // Crear mapas para la máquina
+	        Map<Pokemon.Tipo, List<Pokemon>> pokemonesPorTipo = new HashMap<>();
+	        
+	     // En la clase PokemonGUI
+	        
+	        // Agrupar pokémon de un tipo
+	        for (PokemonUnTipo.PokemonBase base : PokemonUnTipo.PokemonBase.values()) {
+	            if (!pokemonesPorTipo.containsKey(base.tipo)) {
+	                pokemonesPorTipo.put(base.tipo, new ArrayList<>());
+	            }
+	            Pokemon pokemon = new PokemonUnTipo(base.name(), base.stats[0], new ArrayList<>());
+	            pokemonesPorTipo.get(base.tipo).add(pokemon);
+	        }
+	        
+	        // Agrupar pokémon de dos tipos
+	        for (PokemonDosTipos.PokemonBase base : PokemonDosTipos.PokemonBase.values()) {
+	            if (!pokemonesPorTipo.containsKey(base.tipo1)) {
+	                pokemonesPorTipo.put(base.tipo1, new ArrayList<>());
+	            }
+	            Pokemon pokemon = new PokemonDosTipos(base.name(), base.stats[0], new ArrayList<>());
+	            pokemonesPorTipo.get(base.tipo1).add(pokemon);
+	        }
+	        
+	        // Crear mapa de movimientos por tipo
+	        Map<Pokemon.Tipo, List<Movimiento>> movimientosPorTipo = new HashMap<>();
+	        for (Pokemon.Tipo tipo : Pokemon.Tipo.values()) {
+	            movimientosPorTipo.put(tipo, Movimiento.getMovimientosPorTipo(tipo));
+	        }
+	        
+	        // Que la máquina escoja sus pokémon según su estrategia
+	        maquina.escogerPokemonesTipo(pokemonesPorTipo);
+	        
+	        // Asignar movimientos a cada pokémon de la máquina
+	        for (Pokemon pokemon : maquina.getPokemones()) {
+	            maquina.agregarMovimientos(pokemon, movimientosPorTipo, new ArrayList<>());
+	        }
+	        
+	        // Asignar items según la estrategia de la máquina
+	        maquina.escogerItemsTipo(pokemonAplication.getItems()); // poner como parametro pokemonAplication.getItems()
+	        
+	        // Mostrar información en consola
+	        System.out.println("\n=== Inicio de Batalla ===");
+	        System.out.println("Jugador: " + jugador.getName());
+	        if (!jugador.getPokemones().isEmpty()) {
+	            Pokemon primerPokemon = jugador.getPokemones().get(0);
+	            System.out.println("Pokémon inicial: " + primerPokemon.getNombre());
+	            System.out.println("Movimientos disponibles:");
+	            List<Movimiento> moves = pokemonMovements.get(primerPokemon);
+	            if (moves != null) {
+	                for (Movimiento move : moves) {
+	                    System.out.println("- " + move.getName());
+	                }
+	            }
+	        }
+	        System.out.println("Oponente: " + maquina.getName());
+	        System.out.println("=====================\n");
+	
+	        // Crear y mostrar el panel de batalla
+	        battlePanel = new BattlePanel(this, jugador, maquina);
+	        cardPanel.add(battlePanel, "BATTLE");
+	        cardLayout.show(cardPanel, "BATTLE");
+    	} catch(PokemonException p) {
+    		p.getStackTrace();
 
-        // Crear y mostrar el panel de batalla
-        battlePanel = new BattlePanel(this, jugador, maquina);
-        cardPanel.add(battlePanel, "BATTLE");
-        cardLayout.show(cardPanel, "BATTLE");
+    	}
     }
     
     private void verificarDatosBatalla(Entrenador jugador, Entrenador oponente) {
@@ -783,43 +814,49 @@ public class PokemonGUI extends JFrame {
     }
     
     private void asignarPokemonesYMovimientosMaquina(EntrenadorMachine maquina) {
-        // Crear el mapa de pokémon por tipo
-        Map<Pokemon.Tipo, List<Pokemon>> pokemonesPorTipo = new HashMap<>();
-        
-        // Agrupar pokémon de un tipo
-        for (PokemonUnTipo.PokemonBase base : PokemonUnTipo.PokemonBase.values()) {
-            if (!pokemonesPorTipo.containsKey(base.tipo)) {
-                pokemonesPorTipo.put(base.tipo, new ArrayList<>());
-            }
-            Pokemon pokemon = new PokemonUnTipo(base.name(), base.stats[0], new ArrayList<>());
-            pokemonesPorTipo.get(base.tipo).add(pokemon);
-        }
-        
-        // Agrupar pokémon de dos tipos
-        for (PokemonDosTipos.PokemonBase base : PokemonDosTipos.PokemonBase.values()) {
-            if (!pokemonesPorTipo.containsKey(base.tipo1)) {
-                pokemonesPorTipo.put(base.tipo1, new ArrayList<>());
-            }
-            Pokemon pokemon = new PokemonDosTipos(base.name(), base.stats[0], new ArrayList<>());
-            pokemonesPorTipo.get(base.tipo1).add(pokemon);
-        }
-        
-        // Crear mapa de movimientos por tipo
-        Map<Pokemon.Tipo, List<Movimiento>> movimientosPorTipo = new HashMap<>();
-        for (Pokemon.Tipo tipo : Pokemon.Tipo.values()) {
-            movimientosPorTipo.put(tipo, Movimiento.getMovimientosPorTipo(tipo));
-        }
-        
-        // Que la máquina escoja sus pokémon según su estrategia
-        maquina.escogerPokemonesTipo(pokemonesPorTipo);
-        
-        // Asignar movimientos a cada pokémon de la máquina
-        for (Pokemon pokemon : maquina.getPokemones()) {
-            maquina.agregarMovimientos(pokemon, movimientosPorTipo, new ArrayList<>());
-        }
-        
-        // Asignar items según la estrategia de la máquina
-        maquina.escogerItemsTipo(pokemonAplication.getItems());
+    	try {
+	        // Crear el mapa de pokémon por tipo
+	        Map<Pokemon.Tipo, List<Pokemon>> pokemonesPorTipo = new HashMap<>();
+	        
+	        // Agrupar pokémon de un tipo
+	        for (PokemonUnTipo.PokemonBase base : PokemonUnTipo.PokemonBase.values()) {
+	            if (!pokemonesPorTipo.containsKey(base.tipo)) {
+	                pokemonesPorTipo.put(base.tipo, new ArrayList<>());
+	            }
+	            Pokemon pokemon = new PokemonUnTipo(base.name(), base.stats[0], new ArrayList<>());
+	            pokemonesPorTipo.get(base.tipo).add(pokemon);
+	        }
+	        
+	        // Agrupar pokémon de dos tipos
+	        for (PokemonDosTipos.PokemonBase base : PokemonDosTipos.PokemonBase.values()) {
+	            if (!pokemonesPorTipo.containsKey(base.tipo1)) {
+	                pokemonesPorTipo.put(base.tipo1, new ArrayList<>());
+	            }
+	            Pokemon pokemon = new PokemonDosTipos(base.name(), base.stats[0], new ArrayList<>());
+	            pokemonesPorTipo.get(base.tipo1).add(pokemon);
+	        }
+	        
+	        // Crear mapa de movimientos por tipo
+	        Map<Pokemon.Tipo, List<Movimiento>> movimientosPorTipo = new HashMap<>();
+	        for (Pokemon.Tipo tipo : Pokemon.Tipo.values()) {
+	            movimientosPorTipo.put(tipo, Movimiento.getMovimientosPorTipo(tipo));
+	        }
+	        
+	        // Que la máquina escoja sus pokémon según su estrategia
+	        maquina.escogerPokemonesTipo(pokemonesPorTipo);
+	        
+	        // Asignar movimientos a cada pokémon de la máquina
+	        for (Pokemon pokemon : maquina.getPokemones()) {
+	            maquina.agregarMovimientos(pokemon, movimientosPorTipo, new ArrayList<>());
+	        }
+	        
+	        // Asignar items según la estrategia de la máquina
+	        maquina.escogerItemsTipo(pokemonAplication.getItems());
+    	} catch(PokemonException p) {
+    		p.getStackTrace();
+
+    	}
+    	
     }
     
     
@@ -856,34 +893,39 @@ public class PokemonGUI extends JFrame {
    
     
     public void iniciarBatallaPvM(Map<String, Integer> itemsSeleccionados) {
-        // 1. Convertir el Map de selecciones a lista de strings como lo hace comienzoAgregarItems1
-        ArrayList<String> items = new ArrayList<>();
-        for (Map.Entry<String,Integer> i: itemsSeleccionados.entrySet()) {
-            for(int t = 0; t < i.getValue(); t++ ) {
-                items.add(i.getKey());
-            }
-        }
-        
-        // 2. Usar el método existente para crear los items
-        ArrayList<Item> itemsEscogidos = pokemonAplication.escojerItems(items);
-        
-        // 3. Crear el map de entrenador-items
-        Map<Entrenador,ArrayList<Item>> playerItems = new HashMap<>();
-        ArrayList<Entrenador> entrenadores = pokemonAplication.getEntrenadores();
-        
-        // 4. Buscar el entrenador del jugador y asignarle los items
-        for (Entrenador e : entrenadores) {
-            if (e.getName().equals(Entrenador1)) { // Usando Entrenador1 que ya existe en PokemonGUI
-                playerItems.put(e, itemsEscogidos);
-                break;
-            }
-        }
-        
-        // 5. Agregar los items usando el método existente
-        pokemonAplication.agregarItemsLucha(playerItems);
-        
-        // 6. Mostrar el panel de batalla
-        mostrarBattlePvMPanel();
+    	try {
+	        // 1. Convertir el Map de selecciones a lista de strings como lo hace comienzoAgregarItems1
+	        ArrayList<String> items = new ArrayList<>();
+	        for (Map.Entry<String,Integer> i: itemsSeleccionados.entrySet()) {
+	            for(int t = 0; t < i.getValue(); t++ ) {
+	                items.add(i.getKey());
+	            }
+	        }
+	        
+	        // 2. Usar el método existente para crear los items
+	        ArrayList<Item> itemsEscogidos = pokemonAplication.escojerItems(items);
+	        
+	        // 3. Crear el map de entrenador-items
+	        Map<Entrenador,ArrayList<Item>> playerItems = new HashMap<>();
+	        ArrayList<Entrenador> entrenadores = pokemonAplication.getEntrenadores();
+	        
+	        // 4. Buscar el entrenador del jugador y asignarle los items
+	        for (Entrenador e : entrenadores) {
+	            if (e.getName().equals(Entrenador1)) { // Usando Entrenador1 que ya existe en PokemonGUI
+	                playerItems.put(e, itemsEscogidos);
+	                break;
+	            }
+	        }
+	        
+	        // 5. Agregar los items usando el método existente
+	        pokemonAplication.agregarItemsLucha(playerItems);
+	        
+	        // 6. Mostrar el panel de batalla
+	        mostrarBattlePvMPanel();
+    	} catch(PokemonException p) {
+    		p.getStackTrace();
+
+    	}
     }
     
     public List<String> getPokemonNames() {
@@ -918,38 +960,44 @@ public class PokemonGUI extends JFrame {
     }
     
     private void cargarPokemonMaquina() {
-        // Crear el mapa de pokémon por tipo para la máquina
-        Map<Pokemon.Tipo, List<Pokemon>> pokemonesPorTipo = new HashMap<>();
-        
-        // Inicializar las listas para cada tipo
-        for (Pokemon.Tipo tipo : Pokemon.Tipo.values()) {
-            pokemonesPorTipo.put(tipo, new ArrayList<>());
-        }
-        
-        // Agregar pokémon de un tipo
-        for (PokemonUnTipo.PokemonBase base : PokemonUnTipo.PokemonBase.values()) {
-            Pokemon pokemon = new PokemonUnTipo(base.name(), base.stats[0], new ArrayList<>());
-            pokemonesPorTipo.get(base.tipo).add(pokemon);
-        }
-        
-        // Agregar pokémon de dos tipos
-        for (PokemonDosTipos.PokemonBase base : PokemonDosTipos.PokemonBase.values()) {
-            Pokemon pokemon = new PokemonDosTipos(base.name(), base.stats[0], new ArrayList<>());
-            pokemonesPorTipo.get(base.tipo1).add(pokemon);
-        }
-        
-        // Dejar que la máquina escoja sus pokémon
-        maquina.escogerPokemonesTipo(pokemonesPorTipo);
+    	try {
+	        // Crear el mapa de pokémon por tipo para la máquina
+	        Map<Pokemon.Tipo, List<Pokemon>> pokemonesPorTipo = new HashMap<>();
+	        
+	        // Inicializar las listas para cada tipo
+	        for (Pokemon.Tipo tipo : Pokemon.Tipo.values()) {
+	            pokemonesPorTipo.put(tipo, new ArrayList<>());
+	        }
+	        
+	        
+	        // Agregar pokémon de un tipo
+	        for (PokemonUnTipo.PokemonBase base : PokemonUnTipo.PokemonBase.values()) {
+	            Pokemon pokemon = new PokemonUnTipo(base.name(), base.stats[0], new ArrayList<>());
+	            pokemonesPorTipo.get(base.tipo).add(pokemon);
+	        }
+	        
+	        // Agregar pokémon de dos tipos
+	        for (PokemonDosTipos.PokemonBase base : PokemonDosTipos.PokemonBase.values()) {
+	            Pokemon pokemon = new PokemonDosTipos(base.name(), base.stats[0], new ArrayList<>());
+	            pokemonesPorTipo.get(base.tipo1).add(pokemon);
+	        }
+	        
+	        // Dejar que la máquina escoja sus pokémon
+	        maquina.escogerPokemonesTipo(pokemonesPorTipo);
+	
+	        // Agregar movimientos a los pokémon de la máquina
+	        Map<Pokemon.Tipo, List<Movimiento>> movimientosPorTipo = new HashMap<>();
+	        for (Pokemon.Tipo tipo : Pokemon.Tipo.values()) {
+	            movimientosPorTipo.put(tipo, Movimiento.getMovimientosPorTipo(tipo));
+	        }
+	        
+	        for (Pokemon pokemon : maquina.getPokemones()) {
+	            maquina.agregarMovimientos(pokemon, movimientosPorTipo, new ArrayList<>());
+	        }
+    	} catch(PokemonException p) {
+    		p.getStackTrace();
 
-        // Agregar movimientos a los pokémon de la máquina
-        Map<Pokemon.Tipo, List<Movimiento>> movimientosPorTipo = new HashMap<>();
-        for (Pokemon.Tipo tipo : Pokemon.Tipo.values()) {
-            movimientosPorTipo.put(tipo, Movimiento.getMovimientosPorTipo(tipo));
-        }
-        
-        for (Pokemon pokemon : maquina.getPokemones()) {
-            maquina.agregarMovimientos(pokemon, movimientosPorTipo, new ArrayList<>());
-        }
+    	}
     }
     
     private void debugMovements() {

@@ -4,7 +4,7 @@ public class Revive extends Item {
 	private static final String  name = "Revive";
 	private static final String  tipo = "Revive";
 	private final int recuperacion = 400;
-	public Revive(String id) {
+	public Revive(String id) throws PokemonException {
 		super(id);
 		// TODO Auto-generated constructor stub
 	}

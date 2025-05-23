@@ -8,13 +8,13 @@ import domain.Pokemon.Tipo;
 
 public class ModalidadPvM extends ModalidadJuego implements ModoNormal{
 	
-	public ModalidadPvM(String name) {
+	public ModalidadPvM(String name) throws PokemonException {
 		super(name);
 		
 	}
 
 	@Override
-	public ArrayList<Entrenador> crearEntrenadores(Map<String, String> nombresAndTipo) {
+	public ArrayList<Entrenador> crearEntrenadores(Map<String, String> nombresAndTipo) throws PokemonException {
 		ArrayList<Entrenador> entrenadors = new ArrayList<>();
 		for (Map.Entry<String, String> entry: nombresAndTipo.entrySet()) {
 			if (entry.getValue().equals("ExpertTrainer")) {
@@ -28,14 +28,18 @@ public class ModalidadPvM extends ModalidadJuego implements ModoNormal{
 				entrenadors.add(new DefensiveTrainer(entry.getKey(), entry.getValue()));
 			} else if (entry.getValue().equals("PlayerTrainer")){
 				entrenadors.add(new EntrenadorPlayer(entry.getKey(), entry.getValue()));
-			}	
+			} else {
+				throw new PokemonException(PokemonException.TIPO_ENTRENADOR_INVALIDO);
+			}
+			
+			
 			
 		}
 		return entrenadors;
 	}
 	// playerTrainer
 	@Override
-	public void agregarPokemones(Map<Entrenador, ArrayList<Pokemon>> playerPokemones, Map<Tipo,List<Pokemon>> pokemonesMachine) {
+	public void agregarPokemones(Map<Entrenador, ArrayList<Pokemon>> playerPokemones, Map<Tipo,List<Pokemon>> pokemonesMachine) throws PokemonException {
 		for (Map.Entry<Entrenador, ArrayList<Pokemon>> e: playerPokemones.entrySet()) {
 			if (e.getKey().getTipo().equals("PlayerTrainer")) {
 				e.getKey().setPokemones(e.getValue());
@@ -48,7 +52,7 @@ public class ModalidadPvM extends ModalidadJuego implements ModoNormal{
 	}
 
 	@Override
-	public void agregarItems(Map<Entrenador, ArrayList<Item>> playerItems,  ArrayList<Item> itemsDefault) {
+	public void agregarItems(Map<Entrenador, ArrayList<Item>> playerItems,  ArrayList<Item> itemsDefault) throws PokemonException {
 		for (Map.Entry<Entrenador, ArrayList<Item>> player: playerItems.entrySet()) {
 			if (player.getKey().getTipo().equals("PlayerTrainer")) {
 				player.getKey().setItems(player.getValue());
@@ -61,7 +65,7 @@ public class ModalidadPvM extends ModalidadJuego implements ModoNormal{
 	}
 
 	@Override
-	public void agregarMoimientosPlayer(Map<Map<Entrenador, Pokemon>, List<Movimiento>> playerMovimientos, Map<Tipo, List<Movimiento>> movimientosPorTipo) {
+	public void agregarMoimientosPlayer(Map<Map<Entrenador, Pokemon>, List<Movimiento>> playerMovimientos, Map<Tipo, List<Movimiento>> movimientosPorTipo) throws PokemonException {
 		for (Map.Entry<Map<Entrenador, Pokemon>,  List<Movimiento>>  pm : playerMovimientos.entrySet()) {
 			for (Map.Entry<Entrenador, Pokemon>  ep:  pm.getKey().entrySet()) {
 				ep.getKey().agregarMovimientos(ep.getValue(),movimientosPorTipo, pm.getValue());

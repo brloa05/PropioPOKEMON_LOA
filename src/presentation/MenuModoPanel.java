@@ -1,6 +1,9 @@
 package presentation;
 
 import javax.swing.*;
+
+import domain.PokemonException;
+
 import java.awt.*;
 import java.awt.event.*;
 import java.awt.image.BufferedImage;
@@ -118,7 +121,8 @@ public class MenuModoPanel extends JPanel {
             pokemonGUI.aplicationModo("Supervivencia");
             pokemonGUI.agregarModalidad("PvP");
             crearObjetosSupervivencia();
-            pokemonGUI.battleSupreme();
+			pokemonGUI.battleSupreme();
+			
             
         });
         

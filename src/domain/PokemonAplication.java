@@ -1,5 +1,9 @@
 package domain;
 
+import java.io.BufferedReader;
+import java.io.FileReader;
+import java.io.IOException;
+import java.lang.reflect.Constructor;
 import java.util.ArrayList;
 import java.util.EnumMap;
 import java.util.HashMap;
@@ -7,6 +11,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import domain.Pokemon.Tipo;
+
 
 public class PokemonAplication {
 	private ArrayList<Pokemon> pokemones;
@@ -22,7 +27,8 @@ public class PokemonAplication {
 	
 	
 	
-	public PokemonAplication() {
+	
+	public PokemonAplication() throws PokemonException {
 			this.entrenadores =  new ArrayList<>();
 			this.pokemones = new ArrayList<>();
 			this.movimientosPorTipo = new HashMap<>();
@@ -32,204 +38,110 @@ public class PokemonAplication {
 	        inicializarItems();
 		
 	}
-	private void inicializarItems() {
-		
-		items.add(new Potion("Potion"));
-		items.add(new SuperPotion("SuperPotion"));
-		items.add(new HyperPotion("HyperPotion"));
-		items.add(new Revive("Revive"));
-		
+	
+	//modificicacion
+	private void inicializarItems()  {
+	    try (BufferedReader br = new BufferedReader(new FileReader("resources/items.txt"))) {
+	        String linea;
+	        while ((linea = br.readLine()) != null) {
+	            String[] partes = linea.split(",");
+	            String clase = partes[0];
+	            String nombre = partes[1];
+	            try {
+	                // Usar el nombre real del paquete donde están tus clases de items
+	                Class<?> clazz = Class.forName("domain." + clase);
+	                Constructor<?> constructor = clazz.getConstructor(String.class);
+	                Item item = (Item) constructor.newInstance(nombre);
+	                items.add(item);
+	            } catch (Exception e) {
+	                System.out.println("No se pudo instanciar el item: " + clase);
+	                e.printStackTrace();
+	            }
+	        }
+	    } catch (IOException e) {
+	        e.printStackTrace();
+	    } 
 	}
 	
-	private void inicializarMovimientos() {
-        // Movimientos de tipo AGUA
-        List<Movimiento> movimientosAgua = new ArrayList<>();
-        movimientosAgua.add(new Especial("Burbuja", 40, 100, 30, "Puede reducir Velocidad(10)%", Movimiento.TipoEfecto.REDUCIR_VELOCIDAD, Movimiento.ObjetivoEfecto.OBJETIVO, 0));
+	
+	private void inicializarMovimientos() throws PokemonException {
+	    Map<Pokemon.Tipo, List<Movimiento>> movimientosPorTipo = new HashMap<>();
+	    try (BufferedReader br = new BufferedReader(new FileReader("resources/movimientos.txt"))) {
+	        String linea;
+	        while ((linea = br.readLine()) != null) {
+	            if (linea.trim().isEmpty() || linea.startsWith("#")) continue;
+	            String[] partes = linea.split(",", -1);
 
-        movimientosAgua.add(new Fisico("Cascada", 80, 100, 15, "Amedrentar al objetivo (20%)", Movimiento.TipoEfecto.AMEDRENTAR, Movimiento.ObjetivoEfecto.OBJETIVO, 0));
+	            // Extraer y parsear los campos
+	            Pokemon.Tipo tipo = Pokemon.Tipo.valueOf(partes[0].trim());
+	            String nombre = partes[1].trim();
+	            String clase = partes[2].trim().toUpperCase();
+	            int poder = Integer.parseInt(partes[3].trim());
+	            int precision = Integer.parseInt(partes[4].trim());
+	            int pp = Integer.parseInt(partes[5].trim());
+	            String descripcion = partes[6].trim();
+	            Movimiento.TipoEfecto tipoEfecto = Movimiento.TipoEfecto.valueOf(partes[7].trim());
+	            Movimiento.ObjetivoEfecto objetivoEfecto = Movimiento.ObjetivoEfecto.valueOf(partes[8].trim());
+	            int valorEfecto = Integer.parseInt(partes[9].trim());
 
-        movimientosAgua.add(new Especial("Hidrobomba", 110, 80, 5, "Potente chorro de agua sin efectos adicionales", Movimiento.TipoEfecto.NINGUNO, Movimiento.ObjetivoEfecto.OBJETIVO, 0));
+	            Movimiento movimiento;
+	            switch (clase) {
+	                case "FISICO":
+	                    movimiento = new Fisico(nombre, poder, precision, pp, descripcion, tipoEfecto, objetivoEfecto, valorEfecto);
+	                    break;
+	                case "ESPECIAL":
+	                    movimiento = new Especial(nombre, poder, precision, pp, descripcion, tipoEfecto, objetivoEfecto, valorEfecto);
+	                    break;
+	                case "DEESTADO":
+	                    movimiento = new DeEstado(nombre, poder, precision, pp, descripcion, tipoEfecto, objetivoEfecto, valorEfecto);
+	                    break;
+	                default:
+	                    continue; // O puedes lanzar excepción si prefieres
+	            }
 
-        movimientosAgua.add(new Fisico("Martillazo", 100, 90, 10, "Golpe contundente sin efectos adicionales", Movimiento.TipoEfecto.NINGUNO, Movimiento.ObjetivoEfecto.OBJETIVO, 0));
+	            movimientosPorTipo.computeIfAbsent(tipo, k -> new ArrayList<>()).add(movimiento);
+	        }
+	    } catch (IOException e) {
+	        e.printStackTrace();
+	    }
 
-        movimientosAgua.add(new Especial("Pistola agua", 40, 100, 25, "Disparo de agua a presión sin efectos adicionales", Movimiento.TipoEfecto.NINGUNO, Movimiento.ObjetivoEfecto.OBJETIVO, 0));
-
-        movimientosAgua.add(new Especial("Rayo burbuja", 65, 100, 20, "Puede reducir Velocidad(10)%", Movimiento.TipoEfecto.REDUCIR_VELOCIDAD, Movimiento.ObjetivoEfecto.OBJETIVO, 0));
-
-        movimientosAgua.add(new DeEstado("Refugio", 0, 0, 40, "Aumenta Defensa del usuario", Movimiento.TipoEfecto.AUMENTAR_DEFENSA, Movimiento.ObjetivoEfecto.USUARIO, 0));
-
-        movimientosAgua.add(new Especial("Surf", 95, 100, 15, "Ola gigante sin efectos adicionales", Movimiento.TipoEfecto.NINGUNO, Movimiento.ObjetivoEfecto.OBJETIVO, 0));
-        
-        
-        // Movimientos de tipo BICHO
-        List<Movimiento> movimientosBicho = new ArrayList<>();
-        movimientosBicho.add(new Fisico("Chupavidas", 20, 100, 15, "Recupera 50% del daño infligido", Movimiento.TipoEfecto.CURAR_PORCENTAJE, Movimiento.ObjetivoEfecto.USUARIO, 0));
-        
-        movimientosBicho.add(new DeEstado("Disparo demora", 0, 95, 40, "Reduce Velocidad (100%)", Movimiento.TipoEfecto.REDUCIR_VELOCIDAD, Movimiento.ObjetivoEfecto.OBJETIVO, 0));
-       
-        // Movimientos de tipo DRAGON
-        List<Movimiento> movimientosDragon = new ArrayList<>();
-        movimientosDragon.add(new Especial("Furia dragón", 0, 100, 10, "Inflige 40 PS exactos", Movimiento.TipoEfecto.DANO_FIJO, Movimiento.ObjetivoEfecto.OBJETIVO, 0));
-
-        // Movimientos de tipo ELECTRICO
-        List<Movimiento> movimientosElectrico = new ArrayList<>();
-        movimientosElectrico.add(new Especial("Impactrueno", 40, 100, 30, "Puede paralizar (10%)", Movimiento.TipoEfecto.PARALIZAR, Movimiento.ObjetivoEfecto.OBJETIVO, 0));
-
-        movimientosElectrico.add(new DeEstado("Onda trueno", 0, 100, 20, "Paraliza (100%)", Movimiento.TipoEfecto.PARALIZAR, Movimiento.ObjetivoEfecto.OBJETIVO, 0));
-
-        movimientosElectrico.add(new Fisico("Puño trueno", 75, 100, 15, "Puede paralizar (10%)", Movimiento.TipoEfecto.PARALIZAR, Movimiento.ObjetivoEfecto.OBJETIVO, 0));
-
-        movimientosElectrico.add(new Especial("Rayo", 95, 100, 15, "Puede paralizar (10%)", Movimiento.TipoEfecto.PARALIZAR, Movimiento.ObjetivoEfecto.OBJETIVO, 0));
-
-        movimientosElectrico.add(new Especial("Trueno", 110, 70, 10, "Puede paralizar (30%)", Movimiento.TipoEfecto.PARALIZAR, Movimiento.ObjetivoEfecto.OBJETIVO, 0));
-        
-        // Movimientos de tipo FANTASMA
-        List<Movimiento> movimientosFantasma = new ArrayList<>();
-        movimientosFantasma.add(new Fisico("Lengüetazo", 20, 100, 30, "Puede paralizar (30%)", Movimiento.TipoEfecto.PARALIZAR, Movimiento.ObjetivoEfecto.OBJETIVO, 0));
-
-        movimientosFantasma.add(new DeEstado("Rayo confuso", 0, 100, 10, "Confunde al objetivo (100%)", Movimiento.TipoEfecto.CONFUNDIR, Movimiento.ObjetivoEfecto.OBJETIVO, 0));
-
-        movimientosFantasma.add(new Especial("Tinieblas", 0, 100, 10, "Confunde al objetivo (100%)", Movimiento.TipoEfecto.CONFUNDIR, Movimiento.ObjetivoEfecto.OBJETIVO, 0));
-        
-        // Movimientos de tipo FUEGO
-        List<Movimiento> movimientosFuego = new ArrayList<>();
-        movimientosFuego.add(new Especial("Giro fuego", 40, 100, 25, "Puede quemar (10%)", Movimiento.TipoEfecto.QUEMAR, Movimiento.ObjetivoEfecto.OBJETIVO, 0));
-
-        movimientosFuego.add(new Especial("Llamarada", 90, 100, 15, "Puede quemar (10%)", Movimiento.TipoEfecto.QUEMAR, Movimiento.ObjetivoEfecto.OBJETIVO, 0));
-
-        movimientosFuego.add(new Fisico("Puño fuego", 110, 85, 5, "Puede quemar (10%)", Movimiento.TipoEfecto.QUEMAR, Movimiento.ObjetivoEfecto.OBJETIVO, 0));
-
-        // Movimientos de tipo HIELO
-        List<Movimiento> movimientosHielo = new ArrayList<>();
-        movimientosHielo.add(new DeEstado("Neblina", 75, 100, 15, "Puede quemar (10%)", Movimiento.TipoEfecto.QUEMAR, Movimiento.ObjetivoEfecto.OBJETIVO, 0));
-
-        movimientosHielo.add(new DeEstado("Niebla", 0, 0, 30, "Evita reducción de estadísticas del equipo", Movimiento.TipoEfecto.PROTECCION_ESTADISTICAS, Movimiento.ObjetivoEfecto.USUARIO, 0));
-
-        movimientosHielo.add(new Fisico("Puño hielo", 0, 0, 30, "Elimina cambios de estadísticas del objetivo", Movimiento.TipoEfecto.RESET_ESTADISTICAS, Movimiento.ObjetivoEfecto.OBJETIVO, 0));
-
-        movimientosHielo.add(new Especial("Rayo aurora", 75, 100, 15, "Puede congelar (10%)", Movimiento.TipoEfecto.CONGELAR, Movimiento.ObjetivoEfecto.OBJETIVO, 0));
-
-        movimientosHielo.add(new Especial("Rayo hielo", 65, 100, 20, "Puede congelar (10%)", Movimiento.TipoEfecto.CONGELAR, Movimiento.ObjetivoEfecto.OBJETIVO, 0));
-
-        movimientosHielo.add(new Especial("Ventisca", 90, 100, 10, "Puede congelar (10%)", Movimiento.TipoEfecto.CONGELAR, Movimiento.ObjetivoEfecto.OBJETIVO, 0));
-        
-        // Movimientos de tipo LUCHA
-        List<Movimiento> movimientosLucha = new ArrayList<>();
-        movimientosLucha.add(new Fisico("Contraataque", 110, 70, 5, "Ninguno", Movimiento.TipoEfecto.NINGUNO, Movimiento.ObjetivoEfecto.OBJETIVO, 0));
-
-        movimientosLucha.add(new Fisico("Patada baja", 50, 100, 25, "Alta probabilidad de golpe crítico", Movimiento.TipoEfecto.AUMENTAR_CRITICO, Movimiento.ObjetivoEfecto.USUARIO, 0));
-
-        movimientosLucha.add(new Fisico("Sumisión", 80, 80, 25, "Causa daño de retroceso (25%)", Movimiento.TipoEfecto.RETROCESO, Movimiento.ObjetivoEfecto.AMBOS, 0));
-        
-        // Movimientos de tipo PLANTA
-        List<Movimiento> movimientosPlanta = new ArrayList<>();
-        movimientosPlanta.add(new Especial("Absorber", 20, 100, 25, "Recupera 50% del daño causado", Movimiento.TipoEfecto.CURAR_PORCENTAJE, Movimiento.ObjetivoEfecto.USUARIO, 0));
-        movimientosPlanta.add(new Especial("Danza pétalo", 120, 100, 10, "Confunde al usuario al finalizar", Movimiento.TipoEfecto.CONFUNDIR, Movimiento.ObjetivoEfecto.USUARIO, 0));
-        movimientosPlanta.add(new DeEstado("Espora", 0, 100, 15, "Duerme al objetivo", Movimiento.TipoEfecto.DORMIR, Movimiento.ObjetivoEfecto.OBJETIVO, 0));
-        movimientosPlanta.add(new Fisico("Hoja afilada", 55, 95, 25, "Alta probabilidad de golpe crítico", Movimiento.TipoEfecto.AUMENTAR_CRITICO, Movimiento.ObjetivoEfecto.USUARIO, 0));
-        movimientosPlanta.add(new Fisico("Látigo cepa", 45, 100, 25, "Ninguno", Movimiento.TipoEfecto.NINGUNO, Movimiento.ObjetivoEfecto.OBJETIVO, 0));
-        movimientosPlanta.add(new Especial("Megaagotar", 40, 100, 15, "Recupera 50% del daño causado", Movimiento.TipoEfecto.CURAR_PORCENTAJE, Movimiento.ObjetivoEfecto.USUARIO, 0));
-        movimientosPlanta.add(new DeEstado("Paralizador", 0, 75, 20, "Paraliza al objetivo", Movimiento.TipoEfecto.PARALIZAR, Movimiento.ObjetivoEfecto.OBJETIVO, 0));
-        movimientosPlanta.add(new DeEstado("Somnífero", 0, 75, 15, "Duerme al objetivo", Movimiento.TipoEfecto.DORMIR, Movimiento.ObjetivoEfecto.OBJETIVO, 0));
-        
-        // Movimientos de tipo PSIQUICO
-        List<Movimiento> movimientosPsiquico = new ArrayList<>();
-        movimientosPsiquico.add(new DeEstado("Agilidad", 0, 0, 30, "Aumenta 2 niveles la Velocidad del usuario", Movimiento.TipoEfecto.AUMENTAR_VELOCIDAD, Movimiento.ObjetivoEfecto.USUARIO, 0));
-        movimientosPsiquico.add(new DeEstado("Amnesia", 0, 0, 20, "Aumenta 2 niveles la Defensa Especial del usuario", Movimiento.TipoEfecto.AUMENTAR_DEFENSA_ESPECIAL, Movimiento.ObjetivoEfecto.USUARIO, 0));
-        movimientosPsiquico.add(new DeEstado("Barrera", 0, 0, 30, "Aumenta 2 niveles la Defensa del usuario", Movimiento.TipoEfecto.AUMENTAR_DEFENSA, Movimiento.ObjetivoEfecto.USUARIO, 0));
-        movimientosPsiquico.add(new Especial("Confusión", 50, 100, 25, "10% de confundir al objetivo", Movimiento.TipoEfecto.CONFUNDIR, Movimiento.ObjetivoEfecto.OBJETIVO, 0));
-        movimientosPsiquico.add(new DeEstado("Hipnosis", 0, 60, 20, "Duerme al objetivo", Movimiento.TipoEfecto.DORMIR, Movimiento.ObjetivoEfecto.OBJETIVO, 0));
-        movimientosPsiquico.add(new DeEstado("Kinético", 0, 80, 15, "Reduce la Precisión del objetivo en 1 nivel", Movimiento.TipoEfecto.REDUCIR_PRECISION, Movimiento.ObjetivoEfecto.OBJETIVO, 0));
-        movimientosPsiquico.add(new DeEstado("Meditación", 0, 0, 40, "Aumenta 1 nivel el Ataque del usuario", Movimiento.TipoEfecto.AUMENTAR_ATAQUE, Movimiento.ObjetivoEfecto.USUARIO, 0));
-        movimientosPsiquico.add(new Especial("Psicorrayo", 65, 100, 20, "10% de confundir al objetivo", Movimiento.TipoEfecto.CONFUNDIR, Movimiento.ObjetivoEfecto.OBJETIVO, 0));
-        movimientosPsiquico.add(new Especial("Psíquico", 90, 100, 10, "10% de reducir la Defensa Especial del objetivo", Movimiento.TipoEfecto.REDUCIR_DEFENSA_ESPECIAL, Movimiento.ObjetivoEfecto.OBJETIVO, 0));
-        
-        // Movimientos de tipo ROCA
-        List<Movimiento> movimientosRoca = new ArrayList<>();
-        movimientosRoca.add(new Fisico("Avalancha", 60, 100, 10, "Ninguno", Movimiento.TipoEfecto.NINGUNO, Movimiento.ObjetivoEfecto.OBJETIVO, 0));
-        movimientosRoca.add(new Fisico("Lanzarrocas", 50, 100, 15, "10% de reducir la velocidad del objetivo", Movimiento.TipoEfecto.REDUCIR_VELOCIDAD, Movimiento.ObjetivoEfecto.OBJETIVO, 0));
-        
-        // Movimientos de tipo SINIESTRO
-        List<Movimiento> movimientosSiniestro = new ArrayList<>();
-        movimientosSiniestro.add(new Fisico("Mordisco", 60, 100, 25, "10% de hacer retroceder al objetivo", Movimiento.TipoEfecto.RETROCESO, Movimiento.ObjetivoEfecto.OBJETIVO, 0));
-        
-        // Movimientos de tipo TIERRA
-        List<Movimiento> movimientosTierra = new ArrayList<>();
-        movimientosTierra.add(new DeEstado("Ataque arena", 0, 0, 15, "Reduce la precisión del objetivo en 1 nivel", Movimiento.TipoEfecto.REDUCIR_PRECISION, Movimiento.ObjetivoEfecto.OBJETIVO, 0));
-        movimientosTierra.add(new Fisico("Excavar", 80, 100, 10, "El usuario se esconde bajo tierra durante 1 turno y ataca al siguiente", Movimiento.TipoEfecto.ESCONDERSE, Movimiento.ObjetivoEfecto.USUARIO, 0));
-        movimientosTierra.add(new Fisico("Hueso palo", 65, 85, 20, "10% de amedrentar al objetivo", Movimiento.TipoEfecto.AMEDRENTAR, Movimiento.ObjetivoEfecto.OBJETIVO, 0));
-        movimientosTierra.add(new Fisico("Huesomerang", 50, 90, 10, "Golpea dos veces consecutivas", Movimiento.TipoEfecto.MULTIGOLPE, Movimiento.ObjetivoEfecto.OBJETIVO, 0));
-        movimientosTierra.add(new Fisico("Terremoto", 100, 100, 10, "Ninguno", Movimiento.TipoEfecto.NINGUNO, Movimiento.ObjetivoEfecto.OBJETIVO, 0));
-        
-        // Movimientos de tipo VENENO
-        List<Movimiento> movimientosVeneno = new ArrayList<>();
-        movimientosVeneno.add(new Especial("Ácido", 40, 100, 30, "10% de reducir la Defensa del objetivo", Movimiento.TipoEfecto.REDUCIR_DEFENSA, Movimiento.ObjetivoEfecto.OBJETIVO, 0));
-        movimientosVeneno.add(new DeEstado("Armadura ácida", 0, 0, 20, "Aumenta la Defensa Especial del usuario en 2 niveles", Movimiento.TipoEfecto.AUMENTAR_DEFENSA_ESPECIAL, Movimiento.ObjetivoEfecto.USUARIO, 0));
-        movimientosVeneno.add(new DeEstado("Gas venenoso", 0, 90, 40, "Envenena al objetivo", Movimiento.TipoEfecto.ENVENENAR, Movimiento.ObjetivoEfecto.OBJETIVO, 0));
-        movimientosVeneno.add(new Fisico("Picotazo veneno", 15, 100, 35, "10% de envenenar al objetivo", Movimiento.TipoEfecto.ENVENENAR, Movimiento.ObjetivoEfecto.OBJETIVO, 0));
-        movimientosVeneno.add(new Especial("Polución", 65, 100, 20, "10% de envenenar al objetivo", Movimiento.TipoEfecto.ENVENENAR, Movimiento.ObjetivoEfecto.OBJETIVO, 0));
-        movimientosVeneno.add(new DeEstado("Polvo veneno", 0, 75, 20, "Envenena al objetivo", Movimiento.TipoEfecto.ENVENENAR, Movimiento.ObjetivoEfecto.OBJETIVO, 0));
-        movimientosVeneno.add(new Especial("Residuos", 50, 100, 20, "10% de envenenar al objetivo", Movimiento.TipoEfecto.ENVENENAR, Movimiento.ObjetivoEfecto.OBJETIVO, 0));
-        movimientosVeneno.add(new DeEstado("Tóxico", 0, 90, 10, "Envenena al objetivo", Movimiento.TipoEfecto.ENVENENAR, Movimiento.ObjetivoEfecto.OBJETIVO, 0));
-        
-        // Movimientos de tipo VOLADOR
-        List<Movimiento> movimientosVolador = new ArrayList<>();
-        movimientosVolador.add(new Fisico("Ataque aéreo", 0, 100, 10, "Alta probabilidad de golpe crítico", Movimiento.TipoEfecto.AUMENTAR_CRITICO, Movimiento.ObjetivoEfecto.USUARIO, 0));
-        movimientosVolador.add(new Fisico("Ataque ala", 60, 100, 25, "10% de confundir al objetivo", Movimiento.TipoEfecto.CONFUNDIR, Movimiento.ObjetivoEfecto.OBJETIVO, 0));
-        movimientosVolador.add(new Fisico("Pico taladro", 80, 100, 20, "10% de hacer retroceder al objetivo", Movimiento.TipoEfecto.RETROCESO, Movimiento.ObjetivoEfecto.OBJETIVO, 0));
-        movimientosVolador.add(new Fisico("Picotazo", 50, 100, 25, "10% de hacer retroceder al objetivo", Movimiento.TipoEfecto.RETROCESO, Movimiento.ObjetivoEfecto.OBJETIVO, 0));
-        movimientosVolador.add(new Especial("Tornado", 110, 70, 5, "10% de confundir al objetivo", Movimiento.TipoEfecto.CONFUNDIR, Movimiento.ObjetivoEfecto.OBJETIVO, 0));
-        
-        
-
-        movimientosPorTipo.put(Pokemon.Tipo.AGUA, movimientosAgua);
-        movimientosPorTipo.put(Pokemon.Tipo.BICHO, movimientosBicho);
-        movimientosPorTipo.put(Pokemon.Tipo.DRAGON, movimientosDragon);
-        movimientosPorTipo.put(Pokemon.Tipo.ELECTRICO, movimientosElectrico);
-        movimientosPorTipo.put(Pokemon.Tipo.FANTASMA, movimientosFantasma);
-        movimientosPorTipo.put(Pokemon.Tipo.FUEGO, movimientosFuego);
-        movimientosPorTipo.put(Pokemon.Tipo.HIELO, movimientosHielo);
-        movimientosPorTipo.put(Pokemon.Tipo.LUCHA, movimientosLucha);
-        movimientosPorTipo.put(Pokemon.Tipo.PLANTA, movimientosPlanta);
-        movimientosPorTipo.put(Pokemon.Tipo.PSIQUICO, movimientosPsiquico);
-        movimientosPorTipo.put(Pokemon.Tipo.ROCA, movimientosRoca);
-        movimientosPorTipo.put(Pokemon.Tipo.SINIESTRO, movimientosSiniestro);
-        movimientosPorTipo.put(Pokemon.Tipo.TIERRA, movimientosTierra);
-        movimientosPorTipo.put(Pokemon.Tipo.VENENO, movimientosVeneno);
-        movimientosPorTipo.put(Pokemon.Tipo.VOLADOR, movimientosVolador);
-        
-    }
+	    this.movimientosPorTipo = movimientosPorTipo;
+	}
+	
 	
 	 public List<Movimiento> getMovimientosPorTipo(Pokemon.Tipo tipo) {
 	        return new ArrayList<>(movimientosPorTipo.getOrDefault(tipo, new ArrayList<>()));
 	    }
 	 
 	 
-	 public void inicializarPokemonesDisponibles() {
-		 
-		 pokemones.add(new PokemonUnTipo("BLASTOISE", 100, getMovimientosPorTipo(Pokemon.Tipo.AGUA)));
-		 pokemones.add(new PokemonUnTipo("SNORLAX", 100, getMovimientosPorTipo(Pokemon.Tipo.NORMAL)));
-         pokemones.add(new PokemonUnTipo("DONPHAN", 100, getMovimientosPorTipo(Pokemon.Tipo.TIERRA)));
-	     pokemones.add(new PokemonUnTipo("MACHAMP", 100, getMovimientosPorTipo(Pokemon.Tipo.LUCHA)));
-         pokemones.add(new PokemonUnTipo("RAICHU", 100, getMovimientosPorTipo(Pokemon.Tipo.ELECTRICO)));
-		        
-		 
-		 pokemones.add(new PokemonDosTipos("CHARIZARD", 50, getMovimientosPorTipo(Pokemon.Tipo.FUEGO)));
-		 pokemones.add(new PokemonDosTipos("VENUSAUR", 50, getMovimientosPorTipo(Pokemon.Tipo.PLANTA)));
-		 pokemones.add(new PokemonDosTipos("GENGAR", 50, getMovimientosPorTipo(Pokemon.Tipo.FANTASMA)));
-		 pokemones.add(new PokemonDosTipos("DRAGONITE", 50, getMovimientosPorTipo(Pokemon.Tipo.DRAGON)));
-		 pokemones.add(new PokemonDosTipos("TOGEPIC", 50, getMovimientosPorTipo(Pokemon.Tipo.HADA)));
-		 pokemones.add(new PokemonDosTipos("TYRANITAR", 50, getMovimientosPorTipo(Pokemon.Tipo.ROCA)));
-		 pokemones.add(new PokemonDosTipos("GARDEVOIR", 50, getMovimientosPorTipo(Pokemon.Tipo.PSIQUICO)));
-		 pokemones.add(new PokemonDosTipos("METAGROSS", 50, getMovimientosPorTipo(Pokemon.Tipo.ACERO)));
-		 pokemones.add(new PokemonDosTipos("DELIBIRD", 50, getMovimientosPorTipo(Pokemon.Tipo.HIELO)));
-	 }
+	 private void inicializarPokemonesDisponibles() {
+		    try (BufferedReader br = new BufferedReader(new FileReader("resources/pokemones.txt"))) {
+		        String linea;
+		        while ((linea = br.readLine()) != null) {
+		            String[] partes = linea.split(",");
+		            String nombre = partes[0];
+		            int vida = Integer.parseInt(partes[1]);
+		            String tipoPokemon = partes[2];
+		            Pokemon.Tipo tipo = Pokemon.Tipo.valueOf(partes[3].toUpperCase());
+
+		            if ("UNO".equalsIgnoreCase(tipoPokemon)) {
+		                pokemones.add(new PokemonUnTipo(nombre, vida, getMovimientosPorTipo(tipo)));
+		            } else if ("DOS".equalsIgnoreCase(tipoPokemon)) {
+		                pokemones.add(new PokemonDosTipos(nombre, vida, getMovimientosPorTipo(tipo)));
+		            }
+		        }
+		    } catch (IOException e) {
+		        e.printStackTrace();
+		    }
+	}
 	 
-	 public void setModo(String modo) {
-		 if (modo.equals("Normal")) {
+	 public void setModo(String modo) throws PokemonException {
+		 if (modo.equals("Supervivencia")){
 			 this.modo = "Normal";
-		 } else {
+		 } else if (modo.equals("Supervivencia")){
 			 this.modo = "Supervivencia";
+		 } else {
+			 throw new PokemonException(PokemonException.MODO_JUEGO_INVALIDO);
 		 }
 	 }
 	 
@@ -248,7 +160,7 @@ public class PokemonAplication {
 		return items;
 	}
 	
-	public void elegirModalidad(String  modalidadJuego)  {
+	public void elegirModalidad(String  modalidadJuego) throws PokemonException  {
 			if (modalidadJuego == "PvP") {
 				 this.modalidadJuego = new ModalidadPvP("PvP");
 			} else if(modalidadJuego == "PvM") {
@@ -274,7 +186,7 @@ public class PokemonAplication {
 	    }
 	}
 	
-	public void  crearEntrenadors(Map<String, String> nombresAndTipo){
+	public void  crearEntrenadors(Map<String, String> nombresAndTipo) throws PokemonException{
 			this.entrenadores =  modalidadJuego.crearEntrenadores(nombresAndTipo);
 	}
 	
@@ -285,7 +197,7 @@ public class PokemonAplication {
 		return entrenadores;
 	}
 		
-	public void agregarPokemonesPlayer(Map<Entrenador,ArrayList<Pokemon>> playerPokemones) {
+	public void agregarPokemonesPlayer(Map<Entrenador,ArrayList<Pokemon>> playerPokemones) throws PokemonException {
 		Map<Tipo,List<Pokemon>> pokemonesMachine = new HashMap<>();
 		if (!modalidadJuego.getName().equals("PvP")) {
 			for (Tipo tipo : Tipo.values()) {
@@ -302,7 +214,7 @@ public class PokemonAplication {
 	}
 	
 	
-	public void agregarMovimientos(Map<Map<Entrenador, Pokemon>, List<Movimiento>> playerMovimientos) {
+	public void agregarMovimientos(Map<Map<Entrenador, Pokemon>, List<Movimiento>> playerMovimientos) throws PokemonException {
 		if(modalidadJuego.getName().equals("PvP")) {
 			((ModalidadPvP) modalidadJuego).agregarMoimientosPlayer(playerMovimientos, movimientosPorTipo);
 		} else if (modalidadJuego.getName().equals("PvM")) {
@@ -342,7 +254,7 @@ public class PokemonAplication {
 		
 	}
 	
-	public void agregarItemsLucha(Map<Entrenador,ArrayList<Item>> playerItems) {
+	public void agregarItemsLucha(Map<Entrenador,ArrayList<Item>> playerItems) throws PokemonException {
 		if (modalidadJuego.getName() == "PvP") {
 			((ModalidadPvP) modalidadJuego).agregarItems(playerItems, this.items);
 		} else if (modalidadJuego.getName() == "PvM") {
@@ -397,7 +309,7 @@ public class PokemonAplication {
 		
 	}
 	
-	public ArrayList<Item> escojerItems(ArrayList<String> itemsEscogidos ) {
+	public ArrayList<Item> escojerItems(ArrayList<String> itemsEscogidos ) throws PokemonException {
 		
 		if (itemsEscogidos.size() > 3) {
 			//PokemonException
@@ -428,6 +340,7 @@ public class PokemonAplication {
 		return itemEscogidos;		
 
 	}
+	
 	
 	public boolean usarItem(Pokemon pokemon,Item item, Entrenador entrenador) {
 		String idORespuesta = item.efectoItem(pokemon);
@@ -588,7 +501,10 @@ public class PokemonAplication {
 	
 	//prueba agregar
 	public static void main(String[] args) {
-		PokemonAplication p = new PokemonAplication();
+		PokemonAplication p;
+		try {
+			p = new PokemonAplication();
+		
 		Map<Tipo,List<Pokemon>> pokemonesMachine = new HashMap<>();
 		for (Tipo tipo : Tipo.values()) {
 			pokemonesMachine.put(tipo, p.getPokemonesPorTipo(tipo));
@@ -599,6 +515,10 @@ public class PokemonAplication {
 				System.out.println(p2.getNombre());
 				
 			}
+		}
+		} catch (PokemonException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
 		}
 		
 	}

@@ -53,12 +53,25 @@ public abstract class Movimiento {
     private static final Map<Pokemon.Tipo, List<Movimiento>> movimientosPorTipo = new HashMap<>();
     
     static {
-        inicializarMovimientos();
+        try {
+			inicializarMovimientos();
+		} catch (PokemonException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
     }
     
     public Movimiento(String name, int potencia, int presicion, int pp, 
                      String descripcionEfecto, TipoEfecto tipoEfecto,
-                     ObjetivoEfecto objetivoEfecto, int prioridad) {
+                     ObjetivoEfecto objetivoEfecto, int prioridad) throws PokemonException {
+    	if (name.equals(null)) {
+    		throw new PokemonException(PokemonException.NOMBRE_MOVIMIENTO_NULL);
+    	}
+    	
+    	if (descripcionEfecto.equals(null)) {
+    		throw new PokemonException(PokemonException.DESCRIPCION_EFECTO_NULA);
+    	}
+  
         this.name = name;
         this.potencia = potencia;
         this.presicion = presicion;
@@ -197,7 +210,7 @@ public abstract class Movimiento {
         }
     }
     
-    private static void inicializarMovimientos() {
+    private static void inicializarMovimientos() throws PokemonException {
         agregarMovimiento(Pokemon.Tipo.AGUA, new Especial("Burbuja", 40, 100, 30, "Puede reducir Velocidad(10)%", TipoEfecto.REDUCIR_VELOCIDAD,ObjetivoEfecto.OBJETIVO, 0));
         agregarMovimiento(Pokemon.Tipo.AGUA, 
             new Fisico("Cascada", 80, 100, 15, 
