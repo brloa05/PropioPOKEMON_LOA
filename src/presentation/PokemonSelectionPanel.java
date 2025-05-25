@@ -186,19 +186,19 @@ public class PokemonSelectionPanel extends JPanel {
                 return;
             }
             
-            if (JOptionPane.showConfirmDialog(this,
-                "¿Estás seguro de tu selección de Pokémon?",
-                "Confirmar selección",
-                JOptionPane.YES_NO_OPTION) == JOptionPane.YES_OPTION) {
-                
-                pokemonGUI.setSelectedPokemons(new ArrayList<>(selectedPokemons));
-                pokemonGUI.displayCurrentPlayerData();
+            // Guardar selección para el jugador actual
+            pokemonGUI.setSelectedPokemons(new ArrayList<>(selectedPokemons));
+            
+            // Navegación diferenciada
+            if(pokemonGUI.getCurrentPlayerId().equals("player1")) {
                 pokemonGUI.mostrarMovimientoSelectionPanel(selectedPokemons);
+            } else {
+                pokemonGUI.mostrarMovimientoSelectionPanelTwo(selectedPokemons);
             }
         });
     }
     
-    private void resetSelectedPokemons() {
+    public void resetSelectedPokemons() {
         selectedPokemons.clear();
         listModel.clear();
         typeCount.clear();

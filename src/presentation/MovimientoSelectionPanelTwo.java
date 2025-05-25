@@ -27,6 +27,7 @@ public class MovimientoSelectionPanelTwo extends JPanel {
     private JButton btnConfirm;
     private JButton btnSiguiente;
     private List<Pokemon> selectedPokemons = new ArrayList<>();
+    private JButton btnConfirmAndProceed_NEW;
 
     public MovimientoSelectionPanelTwo(PokemonGUI pokemonGUI, List<Pokemon> pokemones) {
         this.pokemonGUI = pokemonGUI;
@@ -75,8 +76,10 @@ public class MovimientoSelectionPanelTwo extends JPanel {
         JPanel bottomPanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
         btnConfirm = new JButton("Confirmar Movimientos");
         btnSiguiente = new JButton("Siguiente");
+        btnConfirmAndProceed_NEW = new JButton("Avanzar (Nueva Lógica)");
         bottomPanel.add(btnConfirm);
         bottomPanel.add(btnSiguiente);
+        bottomPanel.add(btnConfirmAndProceed_NEW);
         add(bottomPanel, BorderLayout.SOUTH);
 
 
@@ -105,29 +108,84 @@ public class MovimientoSelectionPanelTwo extends JPanel {
             }
         });
 
+     // En prepareActions():
+
         btnConfirm.addActionListener(e -> {
             Pokemon current = (Pokemon) cbPokemons.getSelectedItem();
             saveCurrentPokemonMovements(current);
-
-            boolean allComplete = pokemones.stream()
-                .allMatch(p -> movimientosAsignados.getOrDefault(p, List.of()).size() == 4);
-
-            if (allComplete) {
+            
+            if (validateAllMovementsComplete()) {
                 pokemonGUI.setPokemonMovements(new HashMap<>(movimientosAsignados));
-                pokemonGUI.displayCurrentPlayerData();  // Mostrar datos actualizados
+                pokemonGUI.syncMovementsWithTrainers(); // Llamada clave para sincronizar
+                
+                JOptionPane.showMessageDialog(this, 
+                    "Movimientos confirmados correctamente", 
+                    "Confirmación", 
+                    JOptionPane.INFORMATION_MESSAGE);
             } else {
-                JOptionPane.showMessageDialog(this,
-                    "Debes asignar 4 movimientos a cada Pokémon",
-                    "Movimientos incompletos",
-                    JOptionPane.WARNING_MESSAGE);
+                showError("Todos los Pokémon deben tener 4 movimientos asignados");
             }
         });
-        
+
         btnSiguiente.addActionListener(e -> {
+            // 1. Guardar movimientos del Pokémon actual
+            Pokemon current = (Pokemon) cbPokemons.getSelectedItem();
+            saveCurrentPokemonMovements(current);
+            
+            // 2. Validar completitud
+            if (!validateAllMovementsComplete()) {
+                showError("Debes completar todos los movimientos primero");
+                return;
+            }
+            
+            // 3. Solo navegar a batalla
             pokemonGUI.mostrarBattlePanel();
-            setModoJuego(ModoJuego.PVP);
         });
+        
+        btnConfirmAndProceed_NEW.addActionListener(e -> {
+            Pokemon currentPokemonInComboBox = (Pokemon) cbPokemons.getSelectedItem();
+            if (currentPokemonInComboBox != null) {
+                saveCurrentPokemonMovements(currentPokemonInComboBox); // Asegura que los movimientos del Pokémon actualmente visible en el ComboBox se guarden
+            }
+
+            // Lógica de Validación Correcta: Verifica si todos los Pokémon en el equipo del jugador tienen 4 movimientos.
+            // La lista 'pokemones' contiene todos los Pokémon seleccionados por el jugador actual para su equipo.
+            boolean allPokemonHaveFourMoves = true;
+            if (pokemones == null || pokemones.isEmpty()) {
+                allPokemonHaveFourMoves = false; // No debería ocurrir si la selección se hizo correctamente.
+            } else {
+                for (Pokemon p : pokemones) {
+                    // 'movimientosAsignados' almacena los movimientos asignados a cada Pokémon por el jugador en este panel.
+                    if (movimientosAsignados.getOrDefault(p, new ArrayList<>()).size() != 4) {
+                        allPokemonHaveFourMoves = false;
+                        break;
+                    }
+                }
+            }
+
+            if (allPokemonHaveFourMoves) {
+                // Pasa todos los movimientos recopilados para el jugador actual al controlador principal de la GUI.
+                // 'pokemonGUI.setPokemonMovements' debería manejar la actualización del estado para el jugador actual.
+                pokemonGUI.setPokemonMovements(new HashMap<>(movimientosAsignados));
+
+                // Asegura que estos movimientos también se sincronicen con los objetos Entrenador.
+                pokemonGUI.syncMovementsWithTrainers();
+
+                // Procede al panel de batalla.
+                pokemonGUI.mostrarBattlePanel();
+            } else {
+                // Muestra un mensaje de error indicando que no todos los Pokémon tienen 4 movimientos.
+                showError("Error de Nueva Lógica: Cada Pokémon debe tener exactamente 4 movimientos asignados para proceder.");
+            }
+        });
+        //
     }
+    
+
+        private boolean validateAllMovementsComplete() {
+            return pokemones.stream()
+                .allMatch(p -> movimientosAsignados.getOrDefault(p, List.of()).size() == 1);
+        }
 
     private void setModoJuego(ModoJuego pvp) {
 		// TODO Auto-generated method stub

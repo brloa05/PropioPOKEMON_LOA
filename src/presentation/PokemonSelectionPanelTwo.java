@@ -64,6 +64,10 @@ public class PokemonSelectionPanelTwo extends JPanel {
 
     public PokemonSelectionPanelTwo(PokemonGUI pokemonGUI) {
         this.pokemonGUI = pokemonGUI;
+        // SOLUCIÓN: Forzar actualización de jugador actual
+        if(pokemonGUI.getCurrentPlayerId().equals("player2")) {
+            pokemonGUI.setCurrentPlayer("player2");
+        }
         prepareElements();
         prepareActions();
         showPokemonDetails(null);
@@ -192,15 +196,11 @@ public class PokemonSelectionPanelTwo extends JPanel {
                 return;
             }
             
-            if (JOptionPane.showConfirmDialog(this,
-                "¿Estás seguro de tu selección de Pokémon?",
-                "Confirmar selección",
-                JOptionPane.YES_NO_OPTION) == JOptionPane.YES_OPTION) {
-                
-                pokemonGUI.setSelectedPokemons(new ArrayList<>(selectedPokemons));
-                pokemonGUI.displayCurrentPlayerData();
-                pokemonGUI.mostrarMovimientoSelectionPanelTwo(selectedPokemons);
-            }
+            // Guardar selección
+            pokemonGUI.setSelectedPokemons(new ArrayList<>(selectedPokemons));
+            
+            // SOLUCIÓN: Siempre ir a MovimientoSelectionPanel después de seleccionar Pokémon
+            pokemonGUI.mostrarMovimientoSelectionPanelTwo(selectedPokemons);
         });
         
     }
@@ -381,7 +381,7 @@ public class PokemonSelectionPanelTwo extends JPanel {
         updateConfirmAndNextButton();
     }
     
-    private void resetSelectedPokemons() {
+    public void resetSelectedPokemons() {
         selectedPokemons.clear();
         listModel.clear();
         typeCount.clear();

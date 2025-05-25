@@ -270,9 +270,7 @@ public abstract class Pokemon {
     public void setMovimientos(List<Movimiento> movimientos) {
     	this.movimientos = movimientos;
     }
-    public List<Movimiento> getMovimientos() {
-        return this.movimientos != null ? this.movimientos : new ArrayList<>();
-    }
+    
     public boolean intentarAtaque(Pokemon atacante, Movimiento movimiento, Pokemon objetivo) {
 
         if (!atacante.verificarEstado()) {
@@ -286,6 +284,38 @@ public abstract class Pokemon {
         
 
         return true;
+    }
+    
+    /**
+     * Obtiene la lista de movimientos del Pokémon.
+     * Si no hay movimientos asignados, devuelve una lista vacía en lugar de null.
+     * @return Lista de movimientos.
+     */
+    public List<Movimiento> getMovimientos() {
+        if (this.movimientos == null) {
+            return new ArrayList<>(); 
+        }
+        return this.movimientos;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+
+        if (o == null || !(o instanceof Pokemon)) return false; 
+        Pokemon pokemon = (Pokemon) o;
+
+        if (nombre != null ? !nombre.equals(pokemon.nombre) : pokemon.nombre != null) return false;
+
+        return true;
+    }
+
+    @Override
+    public int hashCode() {
+
+        int result = nombre != null ? nombre.hashCode() : 0;
+
+        return result;
     }
     
     @Override

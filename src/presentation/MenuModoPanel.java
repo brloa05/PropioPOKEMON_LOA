@@ -121,7 +121,7 @@ public class MenuModoPanel extends JPanel {
             pokemonGUI.aplicationModo("Supervivencia");
             pokemonGUI.agregarModalidad("PvP");
             crearObjetosSupervivencia();
-			pokemonGUI.battleSupreme();
+			
 			
             
         });

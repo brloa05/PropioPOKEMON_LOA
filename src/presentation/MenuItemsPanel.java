@@ -320,7 +320,7 @@ public class MenuItemsPanel extends JPanel {
             }
             
             pokemonGUI.comienzoAgregarItems1(itemsSeleccionados, "player1");
-            pokemonGUI.mostrarMenuItemsTwo();
+            pokemonGUI.mostrarPokemonSelectionPanel();
         });
     
     }

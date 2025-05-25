@@ -131,7 +131,7 @@ public abstract class Movimiento {
                 break;
             case PROTECCION_ESTADISTICAS:
                 pokemon.aplicarEstado("PROTEGIDO_ESTADISTICAS");
-                break;
+                  break;
             case RESET_ESTADISTICAS:
                 pokemon.resetearEstadisticas();
                 break;

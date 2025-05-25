@@ -8,4 +8,9 @@ public class DeEstado extends Movimiento {
               tipoEfecto, objetivoEfecto, prioridad);
     }
     
+    @Override
+    public String toString() {
+        return "[De Estado] " + name + " ( " + potencia + " de daño)";
+    }
+    
 }

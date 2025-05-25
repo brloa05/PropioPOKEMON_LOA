@@ -218,8 +218,10 @@ public class PvpPanel extends JPanel {
     	        JOptionPane.showMessageDialog(this, "Por favor ingresa un nombre", "Error", JOptionPane.ERROR_MESSAGE);
     	    } else {
     	        try {
+    	            // Establecer como jugador 1 antes de continuar
+    	            pokemonGUI.setCurrentPlayer("player1");
     	            pokemonGUI.comienzoAgregarEntrenadoresPorTipo1(nombre, "PlayerTrainer", "player1");
-    	            pokemonGUI.mostrarMenuPvPTwo();
+    	            pokemonGUI.mostrarMenuItems();
     	        } catch (IllegalArgumentException ex) {
     	            JOptionPane.showMessageDialog(this, ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
     	        }

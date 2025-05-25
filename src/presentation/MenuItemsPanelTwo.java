@@ -92,7 +92,7 @@ public class MenuItemsPanelTwo extends JPanel {
         // Panel para el título
         JPanel panelTitulo = new JPanel();
         panelTitulo.setOpaque(false);
-        JLabel titulo = new JLabel("SELECCIÓN DE ITEMS PLAYER 1", SwingConstants.CENTER);
+        JLabel titulo = new JLabel("SELECCIÓN DE ITEMS PLAYER 2", SwingConstants.CENTER);
         titulo.setFont(new Font("Arial", Font.BOLD, 24));
         titulo.setForeground(Color.WHITE);
         panelTitulo.add(titulo);
@@ -321,7 +321,7 @@ public class MenuItemsPanelTwo extends JPanel {
             }
             
             pokemonGUI.comienzoAgregarItems1(itemsSeleccionados, "player2");
-            pokemonGUI.mostrarPokemonSelectionPanel();
+            pokemonGUI.mostrarPokemonSelectionPanelTwo();  
         });
     
     }

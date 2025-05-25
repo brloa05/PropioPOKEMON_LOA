@@ -26,6 +26,7 @@ public class MovimientoSelectionPanel extends JPanel {
     private JButton btnConfirm;
     private JButton btnSiguiente;
     private List<Pokemon> selectedPokemons = new ArrayList<>();
+    private JButton btnProceedPlayer1_NEW;
 
     public MovimientoSelectionPanel(PokemonGUI pokemonGUI, List<Pokemon> pokemones) {
         this.pokemonGUI = pokemonGUI;
@@ -74,8 +75,10 @@ public class MovimientoSelectionPanel extends JPanel {
         JPanel bottomPanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
         btnConfirm = new JButton("Confirmar Movimientos");
         btnSiguiente = new JButton("Siguiente");
+        btnProceedPlayer1_NEW = new JButton("Confirmar y Avanzar J1 (Nueva Lógica)");
         bottomPanel.add(btnConfirm);
         bottomPanel.add(btnSiguiente);
+        bottomPanel.add(btnProceedPlayer1_NEW);
         add(bottomPanel, BorderLayout.SOUTH);
 
 
@@ -107,24 +110,67 @@ public class MovimientoSelectionPanel extends JPanel {
         btnConfirm.addActionListener(e -> {
             Pokemon current = (Pokemon) cbPokemons.getSelectedItem();
             saveCurrentPokemonMovements(current);
-
-            boolean allComplete = pokemones.stream()
-                .allMatch(p -> movimientosAsignados.getOrDefault(p, List.of()).size() == 4);
-
-            if (allComplete) {
+            
+            if (validateAllMovementsComplete()) {
                 pokemonGUI.setPokemonMovements(new HashMap<>(movimientosAsignados));
-                pokemonGUI.displayCurrentPlayerData();  // Mostrar datos actualizados
+                pokemonGUI.syncMovementsWithTrainers(); // Llamada clave para sincronizar
+                
+                JOptionPane.showMessageDialog(this, 
+                    "Movimientos confirmados correctamente", 
+                    "Confirmación", 
+                    JOptionPane.INFORMATION_MESSAGE);
             } else {
-                JOptionPane.showMessageDialog(this,
-                    "Debes asignar 4 movimientos a cada Pokémon",
-                    "Movimientos incompletos",
-                    JOptionPane.WARNING_MESSAGE);
+                showError("Todos los Pokémon deben tener 4 movimientos asignados");
             }
         });
         
-        btnSiguiente.addActionListener(e -> {
-            pokemonGUI.mostrarPokemonSelectionPanelTwo();  
+        btnProceedPlayer1_NEW.addActionListener(e -> {
+            Pokemon currentPokemonInComboBox = (Pokemon) cbPokemons.getSelectedItem();
+            if (currentPokemonInComboBox != null) {
+                // Asegura que los movimientos del Pokémon actualmente visible en el ComboBox se guarden
+                saveCurrentPokemonMovements(currentPokemonInComboBox);
+            }
+
+            // Lógica de Validación Correcta: Verifica si todos los Pokémon en el equipo del Jugador 1 tienen 4 movimientos.
+            // La lista 'pokemones' (this.pokemones) en esta clase contiene el equipo seleccionado del Jugador 1.
+            boolean allPokemonHaveFourMoves = true;
+            if (this.pokemones == null || this.pokemones.isEmpty()) {
+                allPokemonHaveFourMoves = false; 
+            } else {
+                for (Pokemon p : this.pokemones) {
+                    // 'movimientosAsignados' almacena los movimientos asignados a cada Pokémon por el Jugador 1 en este panel.
+                    if (movimientosAsignados.getOrDefault(p, new ArrayList<>()).size() != 4) {
+                        allPokemonHaveFourMoves = false;
+                        break;
+                    }
+                }
+            }
+
+            if (allPokemonHaveFourMoves) {
+                // Informa a PokemonGUI sobre los movimientos del Jugador 1 (jugador actual).
+                // PokemonGUI internamente usa 'currentPlayer' que debería estar configurado como Jugador 1 en este punto.
+                pokemonGUI.setPokemonMovements(new HashMap<>(movimientosAsignados));
+
+                // Sincroniza los movimientos con los objetos Entrenador en PokemonGUI.
+                pokemonGUI.syncMovementsWithTrainers();
+
+                // Procede a la pantalla de configuración del Jugador 2 (nombre y color).
+                pokemonGUI.mostrarMenuPvPTwo();
+            } else {
+                // Muestra un mensaje de error si la validación falla.
+                showError("Error Nueva Lógica J1: Cada Pokémon del Jugador 1 debe tener exactamente 4 movimientos asignados.");
+            }
         });
+        
+        
+        btnSiguiente.addActionListener(e -> {
+        	pokemonGUI.mostrarMenuPvPTwo();
+        });
+    }
+    
+    private boolean validateAllMovementsComplete() {
+        return pokemones.stream()
+            .allMatch(p -> movimientosAsignados.getOrDefault(p, List.of()).size() == 1);
     }
 
     private void loadPokemonMovements(Pokemon pokemon) {

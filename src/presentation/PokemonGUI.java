@@ -1,4 +1,5 @@
 
+
 package presentation;
 
 import java.util.ArrayList;
@@ -51,7 +52,6 @@ public class PokemonGUI extends JFrame {
     private String Entrenador1;
     private String Entrenador2;
     private Entrenador jugador;
-    private Entrenador oponente;
     private MenuItemsPvMPanel menuItemsPvMPanel;
     private MovimientoSelectionPanel movimientoSelectionPanel;
     private MovimientoSelectionPanelTwo movimientoSelectionPanelTwo;
@@ -59,14 +59,9 @@ public class PokemonGUI extends JFrame {
     private PokemonSelectionPanel pokemonSelectionPanel;
     private PokemonSelectionPanelTwo pokemonSelectionPanelTwo;
     private PokemonSelectionPvMPanel pokemonSelectionPvMPanel;
-    private BattleSupreme1 battlePanel1;
+    
     private BattlePanel battlePanel;
-    private Map<Pokemon, List<Movimiento>> player1Movimientos;
-    private Map<Pokemon, List<Movimiento>> player2Movimientos;
-    private Map<Pokemon, List<Movimiento>> playerMovimientos;
-    
-    
-    
+    private ArrayList<Item> player1CachedItems = null;
     private static final String RUTA_INTRO_GIF = "/introPokemon.gif";
     
     private PokemonAplication pokemonAplication;
@@ -101,6 +96,8 @@ public class PokemonGUI extends JFrame {
         mostrarPantallaIntro();
         centrarVentana();
         this.tipoMaquinaSeleccionada = "Normal";
+        this.playerPokemons = new HashMap<>();
+        this.playerMovements = new HashMap<>();
     }
     
     public enum ModoJuego {
@@ -246,8 +243,8 @@ public class PokemonGUI extends JFrame {
         cardLayout.show(cardPanel, "MAIN MOV PVP");
     }
     
-    public void mostrarMovimientoSelectionPanelTwo(List<Pokemon> pokemones) {
-        movimientoSelectionPanelTwo = new MovimientoSelectionPanelTwo(this, pokemones);
+    public void mostrarMovimientoSelectionPanelTwo(List<Pokemon> pokemons) {
+        movimientoSelectionPanelTwo = new MovimientoSelectionPanelTwo(this, pokemons);
         cardPanel.add(movimientoSelectionPanelTwo, "MAIN MOV TWO");
         cardLayout.show(cardPanel, "MAIN MOV TWO");
     }
@@ -259,11 +256,34 @@ public class PokemonGUI extends JFrame {
     }
     
     public void mostrarPokemonSelectionPanel() {
-    	cardLayout.show(cardPanel, "MAIN POK PVP");
+        setCurrentPlayer("player1");
+        pokemonSelectionPanel.resetSelectedPokemons();
+        cardLayout.show(cardPanel, "MAIN POK PVP");
     }
-    
+
     public void mostrarPokemonSelectionPanelTwo() {
-    	cardLayout.show(cardPanel, "MAIN POK TWO");
+    	if (this.Entrenador1 != null && this.player1CachedItems != null) {
+		    boolean foundP1 = false;
+		    if (pokemonAplication != null && pokemonAplication.getEntrenadores() != null) {
+		        for (Entrenador e : pokemonAplication.getEntrenadores()) {
+		            if (e.getName().equals(this.Entrenador1)) {
+		                e.setItems(new ArrayList<>(this.player1CachedItems));
+		                System.out.println("DEBUG: Ítems cacheados reaplicados al Jugador 1 (" + this.Entrenador1 + ") en mostrarPokemonSelectionPanelTwo: " + this.player1CachedItems.size() + " ítems.");
+		                foundP1 = true;
+		                break;
+		            }
+		        }
+		    }
+		    if (!foundP1) {
+		    System.out.println("DEBUG: Jugador 1 (" + this.Entrenador1 + ") no encontrado en pokemonAplication.getEntrenadores() durante la reaplicación de ítems.");
+		    }
+		} else {
+		    if (this.Entrenador1 == null) System.out.println("DEBUG: Entrenador1 es null, no se pueden reaplicar ítems.");
+		    if (this.player1CachedItems == null) System.out.println("DEBUG: player1CachedItems es null, no se pueden reaplicar ítems.");
+		}
+		setCurrentPlayer("player2");
+		pokemonSelectionPanelTwo.resetSelectedPokemons();
+		cardLayout.show(cardPanel, "MAIN POK TWO");
     }
     
     public void mostrarPokemonSelectionPvMPanel() {
@@ -276,116 +296,130 @@ public class PokemonGUI extends JFrame {
     
  // Método para mostrar batalla PvM
     public void mostrarBattlePvMPanel() {
-    	debugMovements();
     	try {
-        // Verifica si el jugador está inicializado
-        if (jugador == null) {
-            // Si no hay jugador, crea uno nuevo con los datos disponibles
-            jugador = new EntrenadorPlayer(currentPlayer, "Player");
-            
-            // Si hay pokémon seleccionados para el jugador actual, asígnalos
-            if (currentPlayer != null && playerPokemons.containsKey(currentPlayer)) {
-                jugador.setPokemones(playerPokemons.get(currentPlayer));
-            }
-            
-            if (!playerMovements.containsKey(currentPlayer)) {
-                throw new IllegalStateException("No se han asignado movimientos para el jugador actual");
-            }
-            
-        }
-
-        // Crear la máquina según el tipo seleccionado
-        if (maquina == null) {
-            switch(tipoMaquinaSeleccionada) {
-                case "ExpertTrainer":
-                    maquina = new ExpertTrainer("Machine", "ExpertTrainer");
-                    break;
-                case "AttackingTrainer":
-                    maquina = new AttackingTrainer("Machine", "AttackingTrainer");
-                    break;
-                case "DefensiveTrainer":
-                    maquina = new DefensiveTrainer("Machine", "DefensiveTrainer");
-                    break;
-                case "ChangingTrainer":
-                    maquina = new ChangingTrainer("Machine", "ChangingTrainer");
-                    break;
-                default:
-                    maquina = new ExpertTrainer("Machine", "ExpertTrainer");
-            }
-        }
-
-        // Verificar los Pokémon del jugador y la máquina
-        if (jugador.getPokemones() == null || jugador.getPokemones().isEmpty()) {
-            throw new IllegalStateException("El jugador debe tener al menos un Pokémon para iniciar la batalla");
-        }
-        
-        if (maquina == null) {
-        	
-        }
-
-        if (maquina.getPokemones() == null || maquina.getPokemones().isEmpty()) {
-            cargarPokemonMaquina();
-        }
-
-        BattlePvMPanel battlePvMPanel = new BattlePvMPanel(this, jugador, maquina);
-        cardPanel.add(battlePvMPanel, "BATTLE");
-        cardLayout.show(cardPanel, "BATTLE");
-
-	    } catch (IllegalStateException e) {
-	        JOptionPane.showMessageDialog(
-	            this,
-	            "Error al iniciar la batalla: " + e.getMessage(),
-	            "Error",
-	            JOptionPane.ERROR_MESSAGE
-	        );
-	        volverAlMenuPrincipal();
-	    } catch(PokemonException p) {
-	    	
-	    }
+	    	debugMovements();
+	    	try {
+	        // Verifica si el jugador está inicializado
+	        if (jugador == null) {
+	            // Si no hay jugador, crea uno nuevo con los datos disponibles
+	            jugador = new EntrenadorPlayer(currentPlayer, "Player");
+	            
+	            // Si hay pokémon seleccionados para el jugador actual, asígnalos
+	            if (currentPlayer != null && playerPokemons.containsKey(currentPlayer)) {
+	                jugador.setPokemones(playerPokemons.get(currentPlayer));
+	            }
+	            
+	            if (!playerMovements.containsKey(currentPlayer)) {
+	                throw new IllegalStateException("No se han asignado movimientos para el jugador actual");
+	            }
+	            
+	        }
+	
+	        // Crear la máquina según el tipo seleccionado
+	        if (maquina == null) {
+	            switch(tipoMaquinaSeleccionada) {
+	                case "ExpertTrainer":
+	                    maquina = new ExpertTrainer("Machine", "Machine");
+	                    break;
+	                case "AttackingTrainer":
+	                    maquina = new AttackingTrainer("Machine", "Machine");
+	                    break;
+	                case "DefensiveTrainer":
+	                    maquina = new DefensiveTrainer("Machine", "Machine");
+	                    break;
+	                case "ChangingTrainer":
+	                    maquina = new ChangingTrainer("Machine", "Machine");
+	                    break;
+	                default:
+	                    maquina = new ExpertTrainer("Machine", "Machine");
+	            }
+	        }
+	
+	        // Verificar los Pokémon del jugador y la máquina
+	        if (jugador.getPokemones() == null || jugador.getPokemones().isEmpty()) {
+	            throw new IllegalStateException("El jugador debe tener al menos un Pokémon para iniciar la batalla");
+	        }
+	        
+	        if (maquina == null) {
+	        	
+	        }
+	
+	        if (maquina.getPokemones() == null || maquina.getPokemones().isEmpty()) {
+	            cargarPokemonMaquina();
+	        }
+	
+	        BattlePvMPanel battlePvMPanel = new BattlePvMPanel(this, jugador, maquina);
+	        cardPanel.add(battlePvMPanel, "BATTLE");
+	        cardLayout.show(cardPanel, "BATTLE");
+	
+		    } catch (IllegalStateException e) {
+		        JOptionPane.showMessageDialog(
+		            this,
+		            "Error al iniciar la batalla: " + e.getMessage(),
+		            "Error",
+		            JOptionPane.ERROR_MESSAGE
+		        );
+		        volverAlMenuPrincipal();
+		    }
+    	} catch(PokemonException p) {
+    		p.printStackTrace();
+    	}
     }
-    
-    public void battleSupreme()   {
-    		ArrayList<Entrenador> entr = pokemonAplication.getEntrenadores();
-    		Entrenador ent1 = null;
-    		Entrenador ent2 = null;
-    		
-    		for (Entrenador e: entr) {
-		    	if (e.getName().equals(Entrenador1)) {
-		    		ent1 = e;
-		    	} else {
-		    		ent2 = e;
-		    	}
-    		}
-    		battlePanel1= new BattleSupreme1(this,ent1 ,ent2 );
-	        cardPanel.add(battlePanel1, "BATTLE1");
-	        cardLayout.show(cardPanel, "BATTLE1");
-    	
-    	
-    }
-    
 
     // Método para mostrar batalla PvP
     public void mostrarBattlePanel() {
         try {
-            // Modo PvP - usar el BattlePanel original
-            Entrenador jugador1 = new EntrenadorPlayer(Entrenador1, "PlayerTrainer");
-            Entrenador jugador2 = new EntrenadorPlayer(Entrenador2, "PlayerTrainer");
-            
-            if (playerPokemons.containsKey(Entrenador1)) {
-                jugador1.setPokemones(playerPokemons.get(Entrenador1));
+            // Verificar que existan ambos jugadores
+            if (Entrenador1 == null || Entrenador2 == null) {
+                throw new IllegalStateException("Debes seleccionar ambos jugadores primero");
             }
-            if (playerPokemons.containsKey(Entrenador2)) {
-                jugador2.setPokemones(playerPokemons.get(Entrenador2));
+
+            // Obtener los entrenadores
+            Entrenador jugador1 = null;
+            Entrenador jugador2 = null;
+            
+            forceUpdateTrainers();
+            
+            for (Entrenador e : pokemonAplication.getEntrenadores()) {
+                if (e.getName().equals(Entrenador1)) {
+                    jugador1 = e;
+                } else if (e.getName().equals(Entrenador2)) {
+                    jugador2 = e;
+                }
+            }
+
+            // Verificaciones adicionales
+            if (jugador1 == null || jugador2 == null) {
+                throw new IllegalStateException("No se encontraron los entrenadores registrados");
+            }
+
+            // Debug: Mostrar Pokémon de ambos jugadores
+            System.out.println("\n=== Verificación pre-batalla ===");
+            System.out.println("Pokémon de " + jugador1.getName() + ":");
+            if (jugador1.getPokemones() != null) {
+                for (Pokemon p : jugador1.getPokemones()) {
+                    System.out.println("- " + p.getNombre());
+                }
+            } else {
+                System.out.println("Ninguno");
             }
             
-            // Verificar que ambos jugadores tengan Pokémon
+            System.out.println("\nPokémon de " + jugador2.getName() + ":");
+            for (Pokemon p : jugador2.getPokemones()) {
+                System.out.println("- " + p.getNombre());
+            }
+            System.out.println("===============================\n");
+
+            // Verificar que tengan Pokémon
             if (jugador1.getPokemones() == null || jugador1.getPokemones().isEmpty()) {
-                throw new IllegalStateException("El jugador 1 debe tener al menos un Pokémon para iniciar la batalla");
-            }
-            if (jugador2.getPokemones() == null || jugador2.getPokemones().isEmpty()) {
-                throw new IllegalStateException("El jugador 2 debe tener al menos un Pokémon para iniciar la batalla");
+                throw new IllegalStateException("El jugador 1 (" + jugador1.getName() + ") no tiene Pokémon");
             }
             
+            if (jugador2.getPokemones() == null || jugador2.getPokemones().isEmpty()) {
+                throw new IllegalStateException("El jugador 2 (" + jugador2.getName() + ") no tiene Pokémon");
+            }
+
+            // Crear y mostrar el panel de batalla
             battlePanel = new BattlePanel(this, jugador1, jugador2);
             cardPanel.add(battlePanel, "BATTLE");
             cardLayout.show(cardPanel, "BATTLE");
@@ -398,8 +432,6 @@ public class PokemonGUI extends JFrame {
                 JOptionPane.ERROR_MESSAGE
             );
             volverAlMenuPrincipal();
-        } catch (PokemonException p) {
-        	p.getStackTrace();
         }
     }
 
@@ -416,35 +448,31 @@ public class PokemonGUI extends JFrame {
 
     
     
-	public void comienzoAgregarItems1(Map<String,Integer> itemsSeleccionados, String numero) {
+	public void comienzoAgregarItems1(Map<String, Integer> itemsSeleccionados, String playerId) {
 		try {
-		    ArrayList<String> items = new ArrayList<>();
-		    
-		    // Convertir el Map a lista de strings
-		    for (Map.Entry<String,Integer> i: itemsSeleccionados.entrySet()) {
-		        for(int t = 0; t < i.getValue(); t++ ) {
-		            items.add(i.getKey());
+			ArrayList<String> items = new ArrayList<>();
+		    for (Map.Entry<String, Integer> entry : itemsSeleccionados.entrySet()) { // [cite: 1709]
+		        for(int t = 0; t < entry.getValue(); t++) { // [cite: 1709]
+		            items.add(entry.getKey()); // [cite: 1710]
 		        }
 		    }
 		    
-		    // Crear el Map para agregar los items al entrenador
-		    Map<Entrenador, ArrayList<Item>> playerItems = new HashMap<>();
-		    ArrayList<Item> itemsEscogidos = pokemonAplication.escojerItems(items);
-		    ArrayList<Entrenador> entrenadores = pokemonAplication.getEntrenadores();
+		    ArrayList<Item> itemsEscogidos = pokemonAplication.escojerItems(items); // [cite: 1711]
+	
+		    String nombreJugador = playerId.equals("player1") ? Entrenador1 : Entrenador2; // [cite: 1711]
+	
 		    
-		    // Buscar el entrenador correcto y asignarle los items
-		    String nombreBuscado = "player1".equals(numero) ? Entrenador1 : Entrenador2;
-		    for (Entrenador e : entrenadores) {
-		        if (e.getName().equals(nombreBuscado)) {
-		            playerItems.put(e, itemsEscogidos);
+		    if (playerId.equals("player1")) {
+	            this.player1CachedItems = new ArrayList<>(itemsEscogidos); }
+		    
+		    for (Entrenador e : pokemonAplication.getEntrenadores()) {
+		        if (e.getName().equals(nombreJugador)) {
+		            e.setItems(itemsEscogidos);
 		            break;
 		        }
 		    }
-		    
-		    pokemonAplication.agregarItemsLucha(playerItems);
-		    
 		} catch(PokemonException p) {
-			p.getStackTrace();
+			p.printStackTrace();
 		}
 	}
 
@@ -461,35 +489,37 @@ public class PokemonGUI extends JFrame {
     }
     
     public void comienzoAgregarEntrenadoresPorTipo1(String nombre, String tipo, String id) {
-        this.currentPlayer = nombre;
-        playerPokemons.put(nombre, new ArrayList<>());
-        playerMovements.put(nombre, new HashMap<>());
-        
-        System.out.println("\n=== Nuevo Jugador Registrado ===");
-        System.out.println("Nombre: " + nombre);
-        System.out.println("Fecha: " + java.time.LocalDateTime.now().format(java.time.format.DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
-        System.out.println("==============================\n");
-        
-    	
-    	if (nombre == null || tipo == null || id == null) {
-            throw new IllegalArgumentException("Ninguno de los argumentos puede ser null");
-        }
-
-        
-        if (entrenadores == null) {
-            entrenadores = new HashMap<>();
-        }
-
-        
-        entrenadores.put(nombre, tipo);
-
-        // Asignar al jugador correspondiente
-        if ("player1".equals(id)) {
-            this.Entrenador1 = nombre;
-        } else if ("player2".equals(id)) {
-            this.Entrenador2 = nombre;
-        } else {
-            throw new IllegalArgumentException("El valor de 'numero' debe ser 'player1' o 'player2'");
+        try {
+	    	this.currentPlayer = nombre;
+	        
+	        if (entrenadores == null) {
+	            entrenadores = new HashMap<>();
+	        }
+	        
+	        entrenadores.put(nombre, tipo);
+	
+	        if ("player1".equals(id)) {
+	            this.Entrenador1 = nombre;
+	            // SOLUCIÓN: Inicializar lista de Pokémon para JUGADOR 1
+	            playerPokemons.put(nombre, new ArrayList<>());
+	        } else if ("player2".equals(id)) {
+	            this.Entrenador2 = nombre;
+	            playerPokemons.put(nombre, new ArrayList<>());
+	        }
+	        
+	        pokemonAplication.crearEntrenadors(this.entrenadores);
+	        
+	        // Debug mejorado
+	        System.out.println("\n=== Registro Completo ===");
+	        System.out.println("Nombre: " + nombre);
+	        System.out.println("Tipo: " + tipo);
+	        System.out.println("ID: " + id);
+	        System.out.println("Entrenador1: " + Entrenador1);
+	        System.out.println("Entrenador2: " + Entrenador2);
+	        System.out.println("CurrentPlayer: " + currentPlayer);
+	        System.out.println("=========================\n");
+        } catch(PokemonException p) {
+        	p.printStackTrace();
         }
     }
     
@@ -497,18 +527,25 @@ public class PokemonGUI extends JFrame {
 
     public void agregarEntrenadores() {
     	try {
-    		pokemonAplication.crearEntrenadors(this.entrenadores); 
-    	} catch(PokemonException p) {
-    		p.getStackTrace();
+			pokemonAplication.crearEntrenadors(this.entrenadores);
+		} catch (PokemonException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} 
+    	for (Map.Entry<String,String> e: entrenadores.entrySet()) {
+    		System.out.println(e.getKey());
+    		System.out.println(e.getValue());
     	}
+    	
     }
     
     public void aplicationModo(String modo) {
     	try {
-    		pokemonAplication.setModo(modo);
-    	} catch(PokemonException p) {
-    		p.getStackTrace();
-    	}
+			pokemonAplication.setModo(modo);
+		} catch (PokemonException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
     }
     
     private void confirmarSalida() {
@@ -530,7 +567,8 @@ public class PokemonGUI extends JFrame {
 			this.pokemonAplication = new PokemonAplication();
 		} catch (PokemonException e) {
 			// TODO Auto-generated catch block
-			System.out.println(e.getMessage());		}
+			e.printStackTrace();
+		}
     }
     
     public void resetearPokemonAplication() {
@@ -577,6 +615,7 @@ public class PokemonGUI extends JFrame {
     	try {
 			pokemonAplication.elegirModalidad(modalidad);
 		} catch (PokemonException e) {
+			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
     }
@@ -644,42 +683,71 @@ public class PokemonGUI extends JFrame {
     }
 
     public void setSelectedPokemons(List<Pokemon> pokemons) {
-        if (currentPlayer != null) {
-            playerPokemons.put(currentPlayer, new ArrayList<>(pokemons));
-            System.out.println("\n=== Pokémon seleccionados por " + currentPlayer + " ===");
-            for (Pokemon pokemon : pokemons) {
-                System.out.println("- " + pokemon.getNombre());
-            }
-            System.out.println("=====================================\n");
+        if (currentPlayer == null) {
+            System.err.println("Error: currentPlayer es null al guardar Pokémon");
+            return;
         }
+        
+        // 1. Guardar en la estructura temporal
+        playerPokemons.put(currentPlayer, new ArrayList<>(pokemons));
+        
+        // 2. Buscar y actualizar el entrenador correspondiente
+        boolean encontrado = false;
+        for (Entrenador e : pokemonAplication.getEntrenadores()) {
+            if (e.getName().equals(currentPlayer)) {
+                e.setPokemones(new ArrayList<>(pokemons)); // Clonar la lista
+                encontrado = true;
+                System.out.println("Pokémon asignados a " + currentPlayer);
+                break;
+            }
+        }
+        
+        if (!encontrado) {
+            System.err.println("Error: No se encontró entrenador " + currentPlayer);
+        }
+        
+        debugSelections(); // Verificar
     }
 
     
     public void setPokemonMovements(Map<Pokemon, List<Movimiento>> movements) {
-        if (currentPlayer != null) {
-            if (playerMovements == null) {
-                playerMovements = new HashMap<>();
-            }
-            Map<Pokemon, List<Movimiento>> pokemonMoves = new HashMap<>(movements);
-            playerMovements.put(currentPlayer, pokemonMoves);
-            
-            System.out.println("\n=== Movimientos asignados por " + currentPlayer + " ===");
-            for (Map.Entry<Pokemon, List<Movimiento>> entry : movements.entrySet()) {
-                System.out.println("Pokémon: " + entry.getKey().getNombre());
-                System.out.println("Movimientos:");
-                for (Movimiento mov : entry.getValue()) {
-                    System.out.println("  * " + mov.getName());
-                }
-            }
-            System.out.println("=====================================\n");
-            
-            // También actualizar pokemonMovements para compatibilidad
-            this.pokemonMovements = new HashMap<>(movements);
-        } else {
-            System.out.println("Error: No hay jugador actual seleccionado");
-        }
-        debugMovements();
+    if (currentPlayer == null) {
+        System.err.println("Error: currentPlayer es null al guardar movimientos");
+        return;
     }
+
+    // 1. Guardar movimientos en la estructura temporal
+    Map<Pokemon, List<Movimiento>> clonedMovements = new HashMap<>();
+    movements.forEach((k,v) -> clonedMovements.put(k, new ArrayList<>(v)));
+    playerMovements.put(currentPlayer, clonedMovements);
+
+    // 2. Actualizar los Pokémon en los entrenadores
+    List<Pokemon> pokemons = playerPokemons.get(currentPlayer);
+    if (pokemons != null) {
+        for (Entrenador e : pokemonAplication.getEntrenadores()) {
+            if (e.getName().equals(currentPlayer)) {
+                // SOLUCIÓN: Reasignar la lista completa de Pokémon con movimientos
+                List<Pokemon> updatedPokemons = new ArrayList<>();
+                for (Pokemon p : pokemons) {
+                    Pokemon clonedP = clonePokemonWithMoves(p, movements.get(p));
+                    updatedPokemons.add(clonedP);
+                }
+                e.setPokemones(updatedPokemons);
+                break;
+            }
+        }
+    }
+    debugSelections();
+}
+
+private Pokemon clonePokemonWithMoves(Pokemon original, List<Movimiento> moves) {
+    // Implementación según el tipo de Pokémon
+    if (original instanceof PokemonUnTipo) {
+        return new PokemonUnTipo(original.getNombre(), original.getSaludMaxima(), moves);
+    } else {
+        return new PokemonDosTipos(original.getNombre(), original.getSaludMaxima(), moves);
+    }
+}
     
     public void mostrarSeleccionMovimientos(List<Pokemon> pokemones) {
         MovimientoSelectionPanel movimientoPanel = new MovimientoSelectionPanel(this, pokemones);
@@ -713,11 +781,11 @@ public class PokemonGUI extends JFrame {
     }
     
     private void comenzarBatalla() {
-        // Crear los entrenadores
     	try {
-		    EntrenadorPlayer jugador = new EntrenadorPlayer(currentPlayer, "Player");
-		    EntrenadorMachine maquina = new EntrenadorMachine("Machine1", "Machine");
-	    	
+	        // Crear los entrenadores
+	        EntrenadorPlayer jugador = new EntrenadorPlayer(currentPlayer, "Player");
+	        EntrenadorMachine maquina = new EntrenadorMachine("Machine1", "Machine");
+	        
 	        // Asignar pokémon y movimientos al jugador
 	        if (playerPokemons.containsKey(currentPlayer)) {
 	            jugador.setPokemones(playerPokemons.get(currentPlayer));
@@ -784,9 +852,9 @@ public class PokemonGUI extends JFrame {
 	        battlePanel = new BattlePanel(this, jugador, maquina);
 	        cardPanel.add(battlePanel, "BATTLE");
 	        cardLayout.show(cardPanel, "BATTLE");
+	        
     	} catch(PokemonException p) {
-    		p.getStackTrace();
-
+    		p.printStackTrace();
     	}
     }
     
@@ -814,8 +882,8 @@ public class PokemonGUI extends JFrame {
     }
     
     private void asignarPokemonesYMovimientosMaquina(EntrenadorMachine maquina) {
-    	try {
-	        // Crear el mapa de pokémon por tipo
+	     try {   
+    		// Crear el mapa de pokémon por tipo
 	        Map<Pokemon.Tipo, List<Pokemon>> pokemonesPorTipo = new HashMap<>();
 	        
 	        // Agrupar pokémon de un tipo
@@ -852,11 +920,9 @@ public class PokemonGUI extends JFrame {
 	        
 	        // Asignar items según la estrategia de la máquina
 	        maquina.escogerItemsTipo(pokemonAplication.getItems());
-    	} catch(PokemonException p) {
-    		p.getStackTrace();
-
-    	}
-    	
+	   } catch (PokemonException p) {
+		   p.printStackTrace();
+	   }
     }
     
     
@@ -922,9 +988,9 @@ public class PokemonGUI extends JFrame {
 	        
 	        // 6. Mostrar el panel de batalla
 	        mostrarBattlePvMPanel();
+	   
     	} catch(PokemonException p) {
-    		p.getStackTrace();
-
+    		p.printStackTrace();
     	}
     }
     
@@ -969,7 +1035,6 @@ public class PokemonGUI extends JFrame {
 	            pokemonesPorTipo.put(tipo, new ArrayList<>());
 	        }
 	        
-	        
 	        // Agregar pokémon de un tipo
 	        for (PokemonUnTipo.PokemonBase base : PokemonUnTipo.PokemonBase.values()) {
 	            Pokemon pokemon = new PokemonUnTipo(base.name(), base.stats[0], new ArrayList<>());
@@ -995,8 +1060,7 @@ public class PokemonGUI extends JFrame {
 	            maquina.agregarMovimientos(pokemon, movimientosPorTipo, new ArrayList<>());
 	        }
     	} catch(PokemonException p) {
-    		p.getStackTrace();
-
+    		p.printStackTrace();
     	}
     }
     
@@ -1049,7 +1113,103 @@ public class PokemonGUI extends JFrame {
         }
     }
     
+    public void setCurrentPlayer(String playerId) {
+        this.currentPlayer = playerId.equals("player1") ? Entrenador1 : Entrenador2;
+    }
+
+    public String getCurrentPlayerId() {
+        // Manejo seguro de nulls
+        if (currentPlayer == null || Entrenador1 == null) {
+            return "player1"; // Valor por defecto
+        }
+        
+        // Comparación segura que verifica si el currentPlayer es el Entrenador1
+        return currentPlayer.equals(Entrenador1) ? "player1" : "player2";
+    }
     
+    private void debugSelections() {
+        System.out.println("\n=== Debug de Selecciones ===");
+        System.out.println("Jugador actual: " + currentPlayer);
+        System.out.println("Entrenador1: " + Entrenador1);
+        System.out.println("Entrenador2: " + Entrenador2);
+        
+        System.out.println("\nPokémon de jugadores:");
+        for (Map.Entry<String, List<Pokemon>> entry : playerPokemons.entrySet()) {
+            System.out.println(entry.getKey() + ":");
+            for (Pokemon p : entry.getValue()) {
+                System.out.println("- " + p.getNombre());
+            }
+        }
+        
+        System.out.println("\nEntrenadores en aplicación:");
+        for (Entrenador e : pokemonAplication.getEntrenadores()) {
+            System.out.println(e.getName() + " - Pokémon: " + 
+                (e.getPokemones() != null ? e.getPokemones().size() : 0));
+        }
+        System.out.println("==========================\n");
+    }
+    
+    
+    public void forceUpdateTrainers() {
+        for (String playerName : playerPokemons.keySet()) { // [cite: 1716]
+            List<Pokemon> pokemons = playerPokemons.get(playerName); //
+             Map<Pokemon, List<Movimiento>> movements = playerMovements.get(playerName); // [cite: 1716]
+             
+             for (Entrenador e : pokemonAplication.getEntrenadores()) { //
+                 if (e.getName().equals(playerName)) { //
+                    List<Pokemon> updatedPokemons = new ArrayList<>(); //
+                    for (Pokemon p : pokemons) { //
+                        List<Movimiento> pokemonSpecificMoves = null; // Variable para los movimientos del Pokémon 'p'.
+                        if (movements != null) {
+                            pokemonSpecificMoves = movements.get(p);
+                        }
+
+                        if (pokemonSpecificMoves == null) {
+                            pokemonSpecificMoves = new ArrayList<>(); 
+                            System.err.println("ADVERTENCIA: No se encontraron movimientos para el Pokémon " + p.getNombre() + 
+                                               " del jugador " + playerName + ". Se asignará una lista de movimientos vacía.");
+                        }
+                        
+                        // Se clona el Pokémon 'p' y se le asigna 'pokemonSpecificMoves' (que ahora está garantizado que no es null).
+                        Pokemon newP = clonePokemonWithMoves(p, pokemonSpecificMoves); 
+                        
+                        updatedPokemons.add(newP); //
+                    }
+                    
+                    e.setPokemones(updatedPokemons); //
+                    break; 
+                }
+            }
+        }
+        debugSelections(); 
+    }
+    
+    private void updatePokemonMovementsInTrainer(String playerName, Pokemon pokemon, List<Movimiento> movements) {
+        for (Entrenador e : pokemonAplication.getEntrenadores()) {
+            if (e.getName().equals(playerName)) {
+                for (Pokemon p : e.getPokemones()) {
+                    if (p.getNombre().equals(pokemon.getNombre())) {
+                        p.setMovimientos(new ArrayList<>(movements));
+                        break;
+                    }
+                }
+                break;
+            }
+        }
+    }
+    
+    public void syncMovementsWithTrainers() {
+        if (playerMovements == null) return;
+        
+        for (Map.Entry<String, Map<Pokemon, List<Movimiento>>> entry : playerMovements.entrySet()) {
+            String playerName = entry.getKey();
+            Map<Pokemon, List<Movimiento>> pokemonMoves = entry.getValue();
+            
+            for (Map.Entry<Pokemon, List<Movimiento>> pokemonEntry : pokemonMoves.entrySet()) {
+                updatePokemonMovementsInTrainer(playerName, pokemonEntry.getKey(), pokemonEntry.getValue());
+            }
+        }
+    }
     
 
     

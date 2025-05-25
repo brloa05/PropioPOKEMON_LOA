@@ -48,7 +48,7 @@ public class PokemonAplication {
 	            String clase = partes[0];
 	            String nombre = partes[1];
 	            try {
-	                // Usar el nombre real del paquete donde están tus clases de items
+	              
 	                Class<?> clazz = Class.forName("domain." + clase);
 	                Constructor<?> constructor = clazz.getConstructor(String.class);
 	                Item item = (Item) constructor.newInstance(nombre);
@@ -72,7 +72,7 @@ public class PokemonAplication {
 	            if (linea.trim().isEmpty() || linea.startsWith("#")) continue;
 	            String[] partes = linea.split(",", -1);
 
-	            // Extraer y parsear los campos
+	           
 	            Pokemon.Tipo tipo = Pokemon.Tipo.valueOf(partes[0].trim());
 	            String nombre = partes[1].trim();
 	            String clase = partes[2].trim().toUpperCase();
@@ -96,7 +96,7 @@ public class PokemonAplication {
 	                    movimiento = new DeEstado(nombre, poder, precision, pp, descripcion, tipoEfecto, objetivoEfecto, valorEfecto);
 	                    break;
 	                default:
-	                    continue; // O puedes lanzar excepción si prefieres
+	                    continue; 
 	            }
 
 	            movimientosPorTipo.computeIfAbsent(tipo, k -> new ArrayList<>()).add(movimiento);
@@ -128,7 +128,7 @@ public class PokemonAplication {
 		                pokemones.add(new PokemonUnTipo(nombre, vida, getMovimientosPorTipo(tipo)));
 		            } else if ("DOS".equalsIgnoreCase(tipoPokemon)) {
 		                pokemones.add(new PokemonDosTipos(nombre, vida, getMovimientosPorTipo(tipo)));
-		            }
+		            } 
 		        }
 		    } catch (IOException e) {
 		        e.printStackTrace();

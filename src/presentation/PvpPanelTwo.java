@@ -223,14 +223,17 @@ public class PvpPanelTwo extends JPanel {
     	    }
 
     	    try {
+    	        // Verificar nombre único
     	        String nombreJugador1 = pokemonGUI.getNameEntrenador1();
     	        if (nombre.equalsIgnoreCase(nombreJugador1)) {
     	            throw new IllegalArgumentException("El nombre no puede ser igual al del primer jugador");
     	        }
     	        
+    	        // Establecer como jugador 2 antes de continuar
+    	        pokemonGUI.setCurrentPlayer("player2");
     	        pokemonGUI.comienzoAgregarEntrenadoresPorTipo1(nombre, "PlayerTrainer", "player2");
     	        pokemonGUI.agregarEntrenadores();
-    	        pokemonGUI.mostrarMenuItems();
+    	        pokemonGUI.mostrarMenuItemsTwo();  // Cambiado a mostrarMenuItemsTwo()
     	    } catch (Exception ex) {
     	        JOptionPane.showMessageDialog(this, ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
     	        nombreJugador.setText("");
