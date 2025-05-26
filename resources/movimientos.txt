@@ -1,0 +1,83 @@
+AGUA,Burbuja,ESPECIAL,40,100,30,Puede reducir Velocidad(10)%,REDUCIR_VELOCIDAD,OBJETIVO,0
+AGUA,Cascada,FISICO,80,100,15,Amedrentar al objetivo (20%),AMEDRENTAR,OBJETIVO,0
+AGUA,Hidrobomba,ESPECIAL,110,80,5,Potente chorro de agua sin efectos adicionales,NINGUNO,OBJETIVO,0
+AGUA,Martillazo,FISICO,100,90,10,Golpe contundente sin efectos adicionales,NINGUNO,OBJETIVO,0
+AGUA,Pistola agua,ESPECIAL,40,100,25,Disparo de agua a presión sin efectos adicionales,NINGUNO,OBJETIVO,0
+AGUA,Rayo burbuja,ESPECIAL,65,100,20,Puede reducir Velocidad(10)%,REDUCIR_VELOCIDAD,OBJETIVO,0
+AGUA,Refugio,DEESTADO,0,0,40,Aumenta Defensa del usuario,AUMENTAR_DEFENSA,USUARIO,0
+AGUA,Surf,ESPECIAL,95,100,15,Ola gigante sin efectos adicionales,NINGUNO,OBJETIVO,0
+
+BICHO,Chupavidas,FISICO,20,100,15,Recupera 50% del daño infligido,CURAR_PORCENTAJE,USUARIO,0
+BICHO,Disparo demora,DEESTADO,0,95,40,Reduce Velocidad (100%),REDUCIR_VELOCIDAD,OBJETIVO,0
+
+DRAGON,Furia dragón,ESPECIAL,0,100,10,Inflige 40 PS exactos,DANO_FIJO,OBJETIVO,0
+
+ELECTRICO,Impactrueno,ESPECIAL,40,100,30,Puede paralizar (10%),PARALIZAR,OBJETIVO,0
+ELECTRICO,Onda trueno,DEESTADO,0,100,20,Paraliza (100%),PARALIZAR,OBJETIVO,0
+ELECTRICO,Puño trueno,FISICO,75,100,15,Puede paralizar (10%),PARALIZAR,OBJETIVO,0
+ELECTRICO,Rayo,ESPECIAL,95,100,15,Puede paralizar (10%),PARALIZAR,OBJETIVO,0
+ELECTRICO,Trueno,ESPECIAL,110,70,10,Puede paralizar (30%),PARALIZAR,OBJETIVO,0
+
+FANTASMA,Lengüetazo,FISICO,20,100,30,Puede paralizar (30%),PARALIZAR,OBJETIVO,0
+FANTASMA,Rayo confuso,DEESTADO,0,100,10,Confunde al objetivo (100%),CONFUNDIR,OBJETIVO,0
+FANTASMA,Tinieblas,ESPECIAL,0,100,10,Confunde al objetivo (100%),CONFUNDIR,OBJETIVO,0
+
+FUEGO,Giro fuego,ESPECIAL,40,100,25,Puede quemar (10%),QUEMAR,OBJETIVO,0
+FUEGO,Llamarada,ESPECIAL,90,100,15,Puede quemar (10%),QUEMAR,OBJETIVO,0
+FUEGO,Puño fuego,FISICO,110,85,5,Puede quemar (10%),QUEMAR,OBJETIVO,0
+
+HIELO,Neblina,DEESTADO,75,100,15,Puede quemar (10%),QUEMAR,OBJETIVO,0
+HIELO,Niebla,DEESTADO,0,0,30,Evita reducción de estadísticas del equipo,PROTECCION_ESTADISTICAS,USUARIO,0
+HIELO,Puño hielo,FISICO,0,0,30,Elimina cambios de estadísticas del objetivo,RESET_ESTADISTICAS,OBJETIVO,0
+HIELO,Rayo aurora,ESPECIAL,75,100,15,Puede congelar (10%),CONGELAR,OBJETIVO,0
+HIELO,Rayo hielo,ESPECIAL,65,100,20,Puede congelar (10%),CONGELAR,OBJETIVO,0
+HIELO,Ventisca,ESPECIAL,90,100,10,Puede congelar (10%),CONGELAR,OBJETIVO,0
+
+LUCHA,Contraataque,FISICO,110,70,5,Ninguno,NINGUNO,OBJETIVO,0
+LUCHA,Patada baja,FISICO,50,100,25,Alta probabilidad de golpe crítico,AUMENTAR_CRITICO,USUARIO,0
+LUCHA,Sumisión,FISICO,80,80,25,Causa daño de retroceso (25%),RETROCESO,AMBOS,0
+
+PLANTA,Absorber,ESPECIAL,20,100,25,Recupera 50% del daño causado,CURAR_PORCENTAJE,USUARIO,0
+PLANTA,Danza pétalo,ESPECIAL,120,100,10,Confunde al usuario al finalizar,CONFUNDIR,USUARIO,0
+PLANTA,Espora,DEESTADO,0,100,15,Duerme al objetivo,DORMIR,OBJETIVO,0
+PLANTA,Hoja afilada,FISICO,55,95,25,Alta probabilidad de golpe crítico,AUMENTAR_CRITICO,USUARIO,0
+PLANTA,Látigo cepa,FISICO,45,100,25,Ninguno,NINGUNO,OBJETIVO,0
+PLANTA,Megaagotar,ESPECIAL,40,100,15,Recupera 50% del daño causado,CURAR_PORCENTAJE,USUARIO,0
+PLANTA,Paralizador,DEESTADO,0,75,20,Paraliza al objetivo,PARALIZAR,OBJETIVO,0
+PLANTA,Somnífero,DEESTADO,0,75,15,Duerme al objetivo,DORMIR,OBJETIVO,0
+
+PSIQUICO,Agilidad,DEESTADO,0,0,30,Aumenta 2 niveles la Velocidad del usuario,AUMENTAR_VELOCIDAD,USUARIO,0
+PSIQUICO,Amnesia,DEESTADO,0,0,20,Aumenta 2 niveles la Defensa Especial del usuario,AUMENTAR_DEFENSA_ESPECIAL,USUARIO,0
+PSIQUICO,Barrera,DEESTADO,0,0,30,Aumenta 2 niveles la Defensa del usuario,AUMENTAR_DEFENSA,USUARIO,0
+PSIQUICO,Confusión,ESPECIAL,50,100,25,10% de confundir al objetivo,CONFUNDIR,OBJETIVO,0
+PSIQUICO,Hipnosis,DEESTADO,0,60,20,Duerme al objetivo,DORMIR,OBJETIVO,0
+PSIQUICO,Kinético,DEESTADO,0,80,15,Reduce la Precisión del objetivo en 1 nivel,REDUCIR_PRECISION,OBJETIVO,0
+PSIQUICO,Meditación,DEESTADO,0,0,40,Aumenta 1 nivel el Ataque del usuario,AUMENTAR_ATAQUE,USUARIO,0
+PSIQUICO,Psicorrayo,ESPECIAL,65,100,20,10% de confundir al objetivo,CONFUNDIR,OBJETIVO,0
+PSIQUICO,Psíquico,ESPECIAL,90,100,10,10% de reducir la Defensa Especial del objetivo,REDUCIR_DEFENSA_ESPECIAL,OBJETIVO,0
+
+ROCA,Avalancha,FISICO,60,100,10,Ninguno,NINGUNO,OBJETIVO,0
+ROCA,Lanzarrocas,FISICO,50,100,15,10% de reducir la velocidad del objetivo,REDUCIR_VELOCIDAD,OBJETIVO,0
+
+SINIESTRO,Mordisco,FISICO,60,100,25,10% de hacer retroceder al objetivo,RETROCESO,OBJETIVO,0
+
+TIERRA,Ataque arena,DEESTADO,0,0,15,Reduce la precisión del objetivo en 1 nivel,REDUCIR_PRECISION,OBJETIVO,0
+TIERRA,Excavar,FISICO,80,100,10,El usuario se esconde bajo tierra durante 1 turno y ataca al siguiente,ESCONDERSE,USUARIO,0
+TIERRA,Hueso palo,FISICO,65,85,20,10% de amedrentar al objetivo,AMEDRENTAR,OBJETIVO,0
+TIERRA,Huesomerang,FISICO,50,90,10,Golpea dos veces consecutivas,MULTIGOLPE,OBJETIVO,0
+TIERRA,Terremoto,FISICO,100,100,10,Ninguno,NINGUNO,OBJETIVO,0
+
+VENENO,Ácido,ESPECIAL,40,100,30,10% de reducir la Defensa del objetivo,REDUCIR_DEFENSA,OBJETIVO,0
+VENENO,Armadura ácida,DEESTADO,0,0,20,Aumenta la Defensa Especial del usuario en 2 niveles,AUMENTAR_DEFENSA_ESPECIAL,USUARIO,0
+VENENO,Gas venenoso,DEESTADO,0,90,40,Envenena al objetivo,ENVENENAR,OBJETIVO,0
+VENENO,Picotazo veneno,FISICO,15,100,35,10% de envenenar al objetivo,ENVENENAR,OBJETIVO,0
+VENENO,Polución,ESPECIAL,65,100,20,10% de envenenar al objetivo,ENVENENAR,OBJETIVO,0
+VENENO,Polvo veneno,DEESTADO,0,75,20,Envenena al objetivo,ENVENENAR,OBJETIVO,0
+VENENO,Residuos,ESPECIAL,50,100,20,10% de envenenar al objetivo,ENVENENAR,OBJETIVO,0
+VENENO,Tóxico,DEESTADO,0,90,10,Envenena al objetivo,ENVENENAR,OBJETIVO,0
+
+VOLADOR,Ataque aéreo,FISICO,0,100,10,Alta probabilidad de golpe crítico,AUMENTAR_CRITICO,USUARIO,0
+VOLADOR,Ataque ala,FISICO,60,100,25,10% de confundir al objetivo,CONFUNDIR,OBJETIVO,0
+VOLADOR,Pico taladro,FISICO,80,100,20,10% de hacer retroceder al objetivo,RETROCESO,OBJETIVO,0
+VOLADOR,Picotazo,FISICO,50,100,25,10% de hacer retroceder al objetivo,RETROCESO,OBJETIVO,0
+VOLADOR,Tornado,ESPECIAL,110,70,5,10% de confundir al objetivo,CONFUNDIR,OBJETIVO,0

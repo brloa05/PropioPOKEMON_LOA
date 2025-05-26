@@ -1,0 +1,4 @@
+Potion,Potion
+SuperPotion,SuperPotion
+HyperPotion,HyperPotion
+Revive,Revive
